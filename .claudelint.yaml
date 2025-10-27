@@ -1,0 +1,73 @@
+# Example claudelint configuration
+# Copy this file to your repository root and customize as needed
+
+rules:
+  # Plugin structure rules
+  plugin-json-required:
+    enabled: true
+    severity: error
+  
+  plugin-json-valid:
+    enabled: true
+    severity: error
+  
+  plugin-naming:
+    enabled: true
+    severity: warning
+  
+  commands-dir-required:
+    enabled: true
+    severity: error
+  
+  commands-exist:
+    enabled: true
+    severity: warning
+  
+  plugin-readme:
+    enabled: true
+    severity: warning
+  
+  # Command format rules
+  command-naming:
+    enabled: true
+    severity: warning
+  
+  command-frontmatter:
+    enabled: true
+    severity: error
+  
+  command-sections:
+    enabled: true
+    severity: warning
+  
+  command-name-format:
+    enabled: true
+    severity: warning
+  
+  # Marketplace rules (auto-enabled for marketplace repos)
+  marketplace-json-valid:
+    enabled: auto
+    severity: error
+  
+  marketplace-registration:
+    enabled: auto
+    severity: error
+  
+  # Skills rules
+  skill-frontmatter:
+    enabled: true
+    severity: warning
+
+# Load custom rules from these files
+custom-rules: []
+  # - ./my-custom-rules.py
+
+# Exclude patterns (glob format)
+exclude: []
+  # - "**/node_modules/**"
+  # - "**/.git/**"
+  # - "**/vendor/**"
+
+# Treat warnings as errors
+strict: false
+
