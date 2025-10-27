@@ -1,4 +1,3 @@
 """
 Test suite for claudelint
 """
-

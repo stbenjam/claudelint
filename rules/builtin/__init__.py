@@ -37,37 +37,33 @@ BUILTIN_RULES = [
     CommandsDirRequiredRule,
     CommandsExistRule,
     PluginReadmeRule,
-    
     # Command format
     CommandNamingRule,
     CommandFrontmatterRule,
     CommandSectionsRule,
     CommandNameFormatRule,
-    
     # Marketplace
     MarketplaceJsonValidRule,
     MarketplaceRegistrationRule,
-    
     # Skills
     SkillFrontmatterRule,
 ]
 
 
 __all__ = [
-    'BUILTIN_RULES',
+    "BUILTIN_RULES",
     # Export individual rules too
-    'PluginJsonRequiredRule',
-    'PluginJsonValidRule',
-    'PluginNamingRule',
-    'CommandsDirRequiredRule',
-    'CommandsExistRule',
-    'PluginReadmeRule',
-    'CommandNamingRule',
-    'CommandFrontmatterRule',
-    'CommandSectionsRule',
-    'CommandNameFormatRule',
-    'MarketplaceJsonValidRule',
-    'MarketplaceRegistrationRule',
-    'SkillFrontmatterRule',
+    "PluginJsonRequiredRule",
+    "PluginJsonValidRule",
+    "PluginNamingRule",
+    "CommandsDirRequiredRule",
+    "CommandsExistRule",
+    "PluginReadmeRule",
+    "CommandNamingRule",
+    "CommandFrontmatterRule",
+    "CommandSectionsRule",
+    "CommandNameFormatRule",
+    "MarketplaceJsonValidRule",
+    "MarketplaceRegistrationRule",
+    "SkillFrontmatterRule",
 ]
-

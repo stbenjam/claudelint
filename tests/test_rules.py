@@ -36,14 +36,14 @@ def test_plugin_json_required_fails(temp_dir):
     """Test that plugin without plugin.json fails"""
     plugin_dir = temp_dir / "bad-plugin"
     plugin_dir.mkdir()
-    
+
     # Create .claude-plugin dir but no plugin.json inside
     claude_dir = plugin_dir / ".claude-plugin"
     claude_dir.mkdir()
-    
+
     # Create commands dir so it looks like a plugin
     (plugin_dir / "commands").mkdir()
-    
+
     context = RepositoryContext(plugin_dir)
     rule = PluginJsonRequiredRule()
     violations = rule.check(context)
@@ -97,22 +97,25 @@ def test_marketplace_registration_fails(marketplace_repo):
     plugins_dir = marketplace_repo / "plugins"
     new_plugin = plugins_dir / "plugin-three"
     new_plugin.mkdir()
-    
+
     claude_dir = new_plugin / ".claude-plugin"
     claude_dir.mkdir()
-    
+
     import json
-    with open(claude_dir / "plugin.json", 'w') as f:
-        json.dump({
-            "name": "plugin-three",
-            "description": "Third plugin",
-            "version": "1.0.0",
-            "author": {"name": "Test"}
-        }, f)
-    
+
+    with open(claude_dir / "plugin.json", "w") as f:
+        json.dump(
+            {
+                "name": "plugin-three",
+                "description": "Third plugin",
+                "version": "1.0.0",
+                "author": {"name": "Test"},
+            },
+            f,
+        )
+
     context = RepositoryContext(marketplace_repo)
     rule = MarketplaceRegistrationRule()
     violations = rule.check(context)
     assert len(violations) == 1
     assert "plugin-three" in violations[0].message
-

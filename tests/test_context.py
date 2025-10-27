@@ -47,4 +47,3 @@ def test_unknown_repository(temp_dir):
     context = RepositoryContext(temp_dir)
     assert context.repo_type == RepositoryType.UNKNOWN
     assert len(context.plugins) == 0
-
