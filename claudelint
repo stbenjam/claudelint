@@ -43,7 +43,7 @@ Examples:
   # Generate default config
   claudelint --init
 
-For more information, visit: https://github.com/openshift-eng/claudelint
+For more information, visit: https://github.com/stbenjam/claudelint
         """
     )
     

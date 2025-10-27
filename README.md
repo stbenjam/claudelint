@@ -22,7 +22,7 @@ pip install claudelint
 ### From source
 
 ```bash
-git clone https://github.com/openshift-eng/claudelint.git
+git clone https://github.com/stbenjam/claudelint.git
 cd claudelint
 pip install -e .
 ```
@@ -30,10 +30,10 @@ pip install -e .
 ### Using Docker
 
 ```bash
-docker pull ghcr.io/openshift-eng/claudelint:latest
+docker pull ghcr.io/stbenjam/claudelint:latest
 
 # Run on current directory
-docker run -v $(pwd):/workspace ghcr.io/openshift-eng/claudelint
+docker run -v $(pwd):/workspace ghcr.io/stbenjam/claudelint
 ```
 
 ## Quick Start
@@ -262,7 +262,7 @@ lint-plugins:
 ### Docker
 
 ```bash
-docker run -v $(pwd):/workspace -w /workspace ghcr.io/openshift-eng/claudelint --strict
+docker run -v $(pwd):/workspace -w /workspace ghcr.io/stbenjam/claudelint --strict
 ```
 
 ## Exit Codes
@@ -366,6 +366,6 @@ Apache 2.0 - See [LICENSE](LICENSE) for details.
 
 ## Support
 
-- **Issues**: https://github.com/openshift-eng/claudelint/issues
-- **Discussions**: https://github.com/openshift-eng/claudelint/discussions
+- **Issues**: https://github.com/stbenjam/claudelint/issues
+- **Discussions**: https://github.com/stbenjam/claudelint/discussions
 

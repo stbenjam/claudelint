@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-LABEL org.opencontainers.image.source="https://github.com/openshift-eng/claudelint"
+LABEL org.opencontainers.image.source="https://github.com/stbenjam/claudelint"
 LABEL org.opencontainers.image.description="A configurable, rule-based linter for Claude Code plugins"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
 

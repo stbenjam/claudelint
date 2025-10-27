@@ -40,8 +40,8 @@ class RepositoryContext:
         if (self.root_path / ".claude-plugin" / "marketplace.json").exists():
             return RepositoryType.MARKETPLACE
         
-        # Check for single plugin at root
-        if (self.root_path / ".claude-plugin" / "plugin.json").exists():
+        # Check for single plugin at root (even without plugin.json so we can validate it)
+        if (self.root_path / ".claude-plugin").exists():
             return RepositoryType.SINGLE_PLUGIN
         
         # Check for plugins directory (marketplace without registration)

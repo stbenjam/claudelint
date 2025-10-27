@@ -40,10 +40,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/openshift-eng/claudelint"
-Documentation = "https://github.com/openshift-eng/claudelint#readme"
-Repository = "https://github.com/openshift-eng/claudelint"
-Issues = "https://github.com/openshift-eng/claudelint/issues"
+Homepage = "https://github.com/stbenjam/claudelint"
+Documentation = "https://github.com/stbenjam/claudelint#readme"
+Repository = "https://github.com/stbenjam/claudelint"
+Issues = "https://github.com/stbenjam/claudelint/issues"
 
 [project.scripts]
 claudelint = "claudelint:main"
@@ -60,7 +60,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=src --cov=rules --cov-report=html --cov-report=term"
+addopts = "-v"
 
 [tool.black]
 line-length = 100
