@@ -140,8 +140,8 @@ This creates `.claudelint.yaml` with all builtin rules enabled.
 | `plugin-json-required` | Plugin must have `.claude-plugin/plugin.json` | error |
 | `plugin-json-valid` | Plugin.json must be valid with required fields | error |
 | `plugin-naming` | Plugin names should use kebab-case | warning |
-| `commands-dir-required` | Plugin must have a commands directory | error |
-| `commands-exist` | Plugin should have at least one command file | warning |
+| `commands-dir-required` | Plugin should have a commands directory | warning (disabled by default) |
+| `commands-exist` | Plugin should have at least one command file | info (disabled by default) |
 | `plugin-readme` | Plugin should have a README.md file | warning |
 
 ### Command Format

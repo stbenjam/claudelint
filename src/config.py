@@ -52,8 +52,8 @@ class LinterConfig:
                 'plugin-json-required': {'enabled': True, 'severity': 'error'},
                 'plugin-json-valid': {'enabled': True, 'severity': 'error'},
                 'plugin-naming': {'enabled': True, 'severity': 'warning'},
-                'commands-dir-required': {'enabled': True, 'severity': 'error'},
-                'commands-exist': {'enabled': True, 'severity': 'warning'},
+                'commands-dir-required': {'enabled': False, 'severity': 'warning'},  # Optional - plugins can have just skills/hooks
+                'commands-exist': {'enabled': False, 'severity': 'info'},  # Optional - plugins can have just skills/hooks
                 
                 # Command format rules
                 'command-naming': {'enabled': True, 'severity': 'warning'},
