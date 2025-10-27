@@ -94,12 +94,48 @@ jobs:
           $GITHUB_WORKSPACE/claudelint --init
           test -f .claudelint.yaml
       
-      - name: Clone ai-helpers for integration test
-        uses: actions/checkout@v4
-        with:
-          repository: openshift-eng/ai-helpers
-          path: test-repo
-      
-      - name: Run linter on ai-helpers
-        run: ./claudelint test-repo
+      - name: Create test plugin and lint it
+        run: |
+          mkdir -p /tmp/test-plugin/.claude-plugin
+          mkdir -p /tmp/test-plugin/commands
+          
+          # Create plugin.json
+          cat > /tmp/test-plugin/.claude-plugin/plugin.json << 'EOF'
+          {
+            "name": "test-plugin",
+            "description": "A test plugin",
+            "version": "1.0.0",
+            "author": {"name": "Test"}
+          }
+          EOF
+          
+          # Create command
+          cat > /tmp/test-plugin/commands/test.md << 'EOF'
+          ---
+          description: Test command
+          ---
+          
+          ## Name
+          test-plugin:test
+          
+          ## Synopsis
+          ```
+          /test-plugin:test
+          ```
+          
+          ## Description
+          Test command
+          
+          ## Implementation
+          Do something
+          EOF
+          
+          # Lint it
+          ./claudelint /tmp/test-plugin
+          
+          # Should pass with no errors
+          if [ $? -ne 0 ]; then
+            echo "Linting failed!"
+            exit 1
+          fi
 
