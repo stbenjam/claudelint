@@ -72,7 +72,12 @@ class ClaudeLinter:
         Args:
             rule_path: Path to Python file containing Rule subclass
         """
-        path = Path(rule_path).resolve()
+        path = Path(rule_path)
+        # If relative path, resolve relative to repository root
+        if not path.is_absolute():
+            path = self.context.root_path / path
+        path = path.resolve()
+
         if not path.exists():
             raise FileNotFoundError(f"Custom rule file not found: {path}")
 
