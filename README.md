@@ -384,7 +384,7 @@ claudelint/
 ├── tests/               # Test suite
 ├── examples/            # Example configs and custom rules
 ├── claudelint           # CLI entry point
-├── Dockerfile           # Container image
+├── Containerfile        # Container image
 └── pyproject.toml       # Package metadata
 ```
 
