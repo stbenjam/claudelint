@@ -19,7 +19,9 @@ class LinterConfig:
     custom_rules: List[str] = field(default_factory=list)
     exclude_patterns: List[str] = field(default_factory=list)
     strict: bool = False
-    plugin_directories: List[str] = field(default_factory=lambda: ["plugins", ".claude/plugins", ".claude-plugin/plugins"])
+    plugin_directories: List[str] = field(
+        default_factory=lambda: ["plugins", ".claude/plugins", ".claude-plugin/plugins"]
+    )
 
     @classmethod
     def from_file(cls, config_path: Path) -> "LinterConfig":
@@ -46,7 +48,9 @@ class LinterConfig:
             custom_rules=data.get("custom-rules", []),
             exclude_patterns=data.get("exclude", []),
             strict=data.get("strict", False),
-            plugin_directories=data.get("plugin-directories", ["plugins", ".claude/plugins", ".claude-plugin/plugins"]),
+            plugin_directories=data.get(
+                "plugin-directories", ["plugins", ".claude/plugins", ".claude-plugin/plugins"]
+            ),
         )
 
     @classmethod

@@ -126,7 +126,9 @@ class CommandSectionsRule(Rule):
         violations = []
 
         # Get sections from config, or use defaults
-        required_sections = self.config.get("sections", ["Name", "Synopsis", "Description", "Implementation"])
+        required_sections = self.config.get(
+            "sections", ["Name", "Synopsis", "Description", "Implementation"]
+        )
 
         for plugin_path in context.plugins:
             commands_dir = plugin_path / "commands"

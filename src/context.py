@@ -80,7 +80,7 @@ class RepositoryContext:
         elif self.repo_type == RepositoryType.MARKETPLACE:
             # Get plugin directories from config, or use defaults
             plugin_dirs = ["plugins", ".claude/plugins", ".claude-plugin/plugins"]
-            if self.config and hasattr(self.config, 'plugin_directories'):
+            if self.config and hasattr(self.config, "plugin_directories"):
                 plugin_dirs = self.config.plugin_directories
 
             # Look for plugins in each configured directory
