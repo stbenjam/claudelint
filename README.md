@@ -91,20 +91,32 @@ marketplace/
 Create `.claudelint.yaml` in your repository root:
 
 ```yaml
+# Custom plugin directories (defaults shown)
+plugin-directories:
+  - plugins
+  - .claude/plugins
+  - .claude-plugin/plugins
+
 # Enable/disable rules
 rules:
   plugin-json-required:
     enabled: true
     severity: error
-  
+
   plugin-naming:
     enabled: true
     severity: warning
-  
+
   command-sections:
     enabled: true
     severity: warning
-  
+    # Customize required sections (defaults shown)
+    sections:
+      - Name
+      - Synopsis
+      - Description
+      - Implementation
+
   # 'auto' enables only for marketplace repos
   marketplace-registration:
     enabled: auto
@@ -130,6 +142,38 @@ claudelint --init
 ```
 
 This creates `.claudelint.yaml` with all builtin rules enabled.
+
+### Customizing Plugin Discovery
+
+By default, claudelint searches for plugins in these directories:
+- `plugins/`
+- `.claude/plugins/`
+- `.claude-plugin/plugins/`
+
+You can customize this in `.claudelint.yaml`:
+
+```yaml
+plugin-directories:
+  - custom-plugins
+  - src/plugins
+```
+
+### Customizing Command Sections
+
+The `command-sections` rule validates that command files have specific sections. You can customize which sections are required:
+
+```yaml
+rules:
+  command-sections:
+    enabled: true
+    severity: warning
+    sections:
+      - Name
+      - Synopsis
+      - Description
+      - Implementation
+      - Examples  # Add custom sections
+```
 
 ## Builtin Rules
 

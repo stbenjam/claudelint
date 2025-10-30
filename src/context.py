@@ -23,14 +23,16 @@ class RepositoryContext:
     Automatically detects repository type and gathers relevant metadata.
     """
 
-    def __init__(self, root_path: Path):
+    def __init__(self, root_path: Path, config=None):
         """
         Initialize repository context
 
         Args:
             root_path: Root directory of the repository
+            config: Optional LinterConfig with plugin_directories
         """
         self.root_path = root_path.resolve()
+        self.config = config
         self.repo_type = self._detect_type()
         self.marketplace_data = self._load_marketplace() if self.has_marketplace() else None
         self.plugins = self._discover_plugins()
@@ -76,14 +78,20 @@ class RepositoryContext:
             plugins.append(self.root_path)
 
         elif self.repo_type == RepositoryType.MARKETPLACE:
-            # Look for plugins in plugins/ directory
-            plugins_dir = self.root_path / "plugins"
-            if plugins_dir.exists():
-                for item in plugins_dir.iterdir():
-                    if item.is_dir() and not item.name.startswith("."):
-                        # Check if it has .claude-plugin or commands directory
-                        if (item / ".claude-plugin").exists() or (item / "commands").exists():
-                            plugins.append(item)
+            # Get plugin directories from config, or use defaults
+            plugin_dirs = ["plugins", ".claude/plugins", ".claude-plugin/plugins"]
+            if self.config and hasattr(self.config, 'plugin_directories'):
+                plugin_dirs = self.config.plugin_directories
+
+            # Look for plugins in each configured directory
+            for plugins_dir_name in plugin_dirs:
+                plugins_dir = self.root_path / plugins_dir_name
+                if plugins_dir.exists():
+                    for item in plugins_dir.iterdir():
+                        if item.is_dir() and not item.name.startswith("."):
+                            # Check if it has .claude-plugin or commands directory
+                            if (item / ".claude-plugin").exists() or (item / "commands").exists():
+                                plugins.append(item)
 
         return plugins
 

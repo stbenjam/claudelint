@@ -125,7 +125,8 @@ class CommandSectionsRule(Rule):
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         violations = []
 
-        required_sections = ["Name", "Synopsis", "Description", "Implementation"]
+        # Get sections from config, or use defaults
+        required_sections = self.config.get("sections", ["Name", "Synopsis", "Description", "Implementation"])
 
         for plugin_path in context.plugins:
             commands_dir = plugin_path / "commands"
