@@ -143,8 +143,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: openshift-eng/ai-helpers
-          path: /tmp/ai-helpers
+          path: ai-helpers
 
       - name: Lint ai-helpers repository
-        run: ./claudelint /tmp/ai-helpers -v
+        run: ./claudelint ai-helpers -v
 
