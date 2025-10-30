@@ -98,7 +98,7 @@ jobs:
         run: |
           mkdir -p /tmp/test-plugin/.claude-plugin
           mkdir -p /tmp/test-plugin/commands
-          
+
           # Create plugin.json
           cat > /tmp/test-plugin/.claude-plugin/plugin.json << 'EOF'
           {
@@ -108,34 +108,43 @@ jobs:
             "author": {"name": "Test"}
           }
           EOF
-          
+
           # Create command
           cat > /tmp/test-plugin/commands/test.md << 'EOF'
           ---
           description: Test command
           ---
-          
+
           ## Name
           test-plugin:test
-          
+
           ## Synopsis
           ```
           /test-plugin:test
           ```
-          
+
           ## Description
           Test command
-          
+
           ## Implementation
           Do something
           EOF
-          
+
           # Lint it
           ./claudelint /tmp/test-plugin
-          
+
           # Should pass with no errors
           if [ $? -ne 0 ]; then
             echo "Linting failed!"
             exit 1
           fi
+
+      - name: Checkout ai-helpers repository
+        uses: actions/checkout@v4
+        with:
+          repository: openshift-eng/ai-helpers
+          path: /tmp/ai-helpers
+
+      - name: Lint ai-helpers repository
+        run: ./claudelint /tmp/ai-helpers -v
 
