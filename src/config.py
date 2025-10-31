@@ -98,6 +98,8 @@ class LinterConfig:
                 },
                 # Skills rules
                 "skill-frontmatter": {"enabled": True, "severity": "warning"},
+                # Agent rules
+                "agent-frontmatter": {"enabled": True, "severity": "warning"},
             }
         )
 
