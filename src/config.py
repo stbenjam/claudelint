@@ -84,18 +84,6 @@ class LinterConfig:
                 "marketplace-registration": {"enabled": "auto", "severity": "error"},
                 # Documentation rules
                 "plugin-readme": {"enabled": True, "severity": "warning"},
-                "plugin-metadata-complete": {
-                    "enabled": True,
-                    "severity": "info",
-                    "recommended-fields": [
-                        "license",
-                        "homepage",
-                        "repository",
-                        "keywords",
-                        "author.email",
-                        "author.url",
-                    ],
-                },
                 # Skills rules
                 "skill-frontmatter": {"enabled": True, "severity": "warning"},
                 # Agent rules

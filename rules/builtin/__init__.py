@@ -9,7 +9,6 @@ from .plugin_structure import (
     CommandsDirRequiredRule,
     CommandsExistRule,
     PluginReadmeRule,
-    PluginMetadataCompletenessRule,
 )
 
 from .command_format import (
@@ -46,7 +45,6 @@ BUILTIN_RULES = [
     CommandsDirRequiredRule,
     CommandsExistRule,
     PluginReadmeRule,
-    PluginMetadataCompletenessRule,
     # Command format
     CommandNamingRule,
     CommandFrontmatterRule,
@@ -73,7 +71,6 @@ __all__ = [
     "CommandsDirRequiredRule",
     "CommandsExistRule",
     "PluginReadmeRule",
-    "PluginMetadataCompletenessRule",
     "CommandNamingRule",
     "CommandFrontmatterRule",
     "CommandSectionsRule",
