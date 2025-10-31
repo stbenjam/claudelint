@@ -100,6 +100,8 @@ class LinterConfig:
                 "skill-frontmatter": {"enabled": True, "severity": "warning"},
                 # Agent rules
                 "agent-frontmatter": {"enabled": True, "severity": "warning"},
+                # Hook rules
+                "hook-validation": {"enabled": True, "severity": "error"},
             }
         )
 
