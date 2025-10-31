@@ -229,3 +229,64 @@ class PluginReadmeRule(Rule):
                 )
 
         return violations
+
+
+class PluginMetadataCompletenessRule(Rule):
+    """Check that plugin.json has recommended optional metadata fields"""
+
+    @property
+    def rule_id(self) -> str:
+        return "plugin-metadata-complete"
+
+    @property
+    def description(self) -> str:
+        return "Plugin.json should include recommended metadata (license, homepage, repository, keywords)"
+
+    def default_severity(self) -> Severity:
+        return Severity.INFO
+
+    def check(self, context: RepositoryContext) -> List[RuleViolation]:
+        violations = []
+
+        # Get recommended fields from config, or use defaults
+        recommended_fields = self.config.get(
+            "recommended-fields",
+            ["license", "homepage", "repository", "keywords", "author.email", "author.url"],
+        )
+
+        for plugin_path in context.plugins:
+            plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
+
+            if not plugin_json.exists():
+                continue  # Handled by plugin-json-required rule
+
+            try:
+                with open(plugin_json, "r") as f:
+                    data = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                continue  # Handled by plugin-json-valid rule
+
+            # Check for recommended top-level fields
+            for field in recommended_fields:
+                if "." in field:
+                    # Handle nested fields like author.email
+                    parts = field.split(".")
+                    if parts[0] in data:
+                        obj = data[parts[0]]
+                        if isinstance(obj, dict) and parts[1] not in obj:
+                            violations.append(
+                                self.violation(
+                                    f"Missing recommended field '{field}' (improves discoverability)",
+                                    file_path=plugin_json,
+                                )
+                            )
+                else:
+                    if field not in data:
+                        violations.append(
+                            self.violation(
+                                f"Missing recommended field '{field}' (improves discoverability)",
+                                file_path=plugin_json,
+                            )
+                        )
+
+        return violations
