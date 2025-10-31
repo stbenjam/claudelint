@@ -112,16 +112,7 @@ For more information, visit: https://github.com/stbenjam/claudelint
         print(f"Error: Path not found: {args.path}", file=sys.stderr)
         sys.exit(1)
 
-    # Create repository context
-    print(f"Linting Claude plugins in: {args.path}\n")
-    context = RepositoryContext(args.path)
-
-    # Show repository type
-    if context.repo_type == RepositoryType.UNKNOWN:
-        print("Warning: Directory doesn't appear to be a Claude plugin repository", file=sys.stderr)
-        print("Expected: .claude-plugin/plugin.json or plugins/ directory\n", file=sys.stderr)
-
-    # Load config
+    # Load config first (before creating context, so it can use plugin_directories)
     if args.config:
         config_path = args.config
         if not config_path.exists():
@@ -141,6 +132,15 @@ For more information, visit: https://github.com/stbenjam/claudelint
             sys.exit(1)
     else:
         config = LinterConfig.default()
+
+    # Create repository context with config
+    print(f"Linting Claude plugins in: {args.path}\n")
+    context = RepositoryContext(args.path, config)
+
+    # Show repository type
+    if context.repo_type == RepositoryType.UNKNOWN:
+        print("Warning: Directory doesn't appear to be a Claude plugin repository", file=sys.stderr)
+        print("Expected: .claude-plugin/plugin.json or plugins/ directory\n", file=sys.stderr)
 
     # Apply strict mode from CLI
     if args.strict:

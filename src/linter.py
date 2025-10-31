@@ -55,11 +55,15 @@ class ClaudeLinter:
                 from ..rules.builtin import BUILTIN_RULES
 
             for rule_class in BUILTIN_RULES:
+                # Create temporary instance to get rule_id
+                temp_instance = rule_class()
+                rule_id = temp_instance.rule_id
+
                 # Create instance with config
-                rule_instance = rule_class(self.config.get_rule_config(rule_class.rule_id))
+                rule_instance = rule_class(self.config.get_rule_config(rule_id))
 
                 # Check if enabled for this context
-                if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
+                if self.config.is_rule_enabled(rule_id, self.context):
                     self.rules.append(rule_instance)
 
         except ImportError as e:
@@ -91,11 +95,15 @@ class ClaudeLinter:
             obj = getattr(module, name)
             if isinstance(obj, type) and issubclass(obj, Rule) and obj is not Rule:
 
-                # Create instance
-                rule_instance = obj(self.config.get_rule_config(obj.rule_id))
+                # Create temporary instance to get rule_id
+                temp_instance = obj()
+                rule_id = temp_instance.rule_id
+
+                # Create instance with config
+                rule_instance = obj(self.config.get_rule_config(rule_id))
 
                 # Check if enabled
-                if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
+                if self.config.is_rule_enabled(rule_id, self.context):
                     self.rules.append(rule_instance)
 
     def run(self) -> List[RuleViolation]:

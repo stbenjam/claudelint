@@ -1,5 +1,5 @@
 """
-Rules for validating skill files
+Rules for validating agent files
 """
 
 import re
@@ -13,16 +13,16 @@ except ImportError:
     from ...src.context import RepositoryContext
 
 
-class SkillFrontmatterRule(Rule):
-    """Check that SKILL.md files have frontmatter"""
+class AgentFrontmatterRule(Rule):
+    """Check that agent files have valid frontmatter"""
 
     @property
     def rule_id(self) -> str:
-        return "skill-frontmatter"
+        return "agent-frontmatter"
 
     @property
     def description(self) -> str:
-        return "SKILL.md files should have frontmatter with name and description"
+        return "Agent files must have frontmatter with description and capabilities"
 
     def default_severity(self) -> Severity:
         return Severity.WARNING
@@ -31,52 +31,45 @@ class SkillFrontmatterRule(Rule):
         violations = []
 
         for plugin_path in context.plugins:
-            # Get all skills directories from plugin.json
-            for skills_dir in context.get_skills_dirs(plugin_path):
-                for skill_dir in skills_dir.iterdir():
-                    if not skill_dir.is_dir():
-                        continue
-
-                    skill_md = skill_dir / "SKILL.md"
-                    if not skill_md.exists():
-                        violations.append(self.violation("Missing SKILL.md", file_path=skill_dir))
-                        continue
-
+            # Get all agent directories from plugin.json
+            for agents_dir in context.get_agents_dirs(plugin_path):
+                for agent_file in agents_dir.glob("*.md"):
                     try:
-                        with open(skill_md, "r") as f:
+                        with open(agent_file, "r") as f:
                             content = f.read()
                     except IOError as e:
                         violations.append(
-                            self.violation(f"Failed to read file: {e}", file_path=skill_md)
+                            self.violation(f"Failed to read file: {e}", file_path=agent_file)
                         )
                         continue
 
                     # Check for frontmatter
                     if not content.startswith("---"):
                         violations.append(
-                            self.violation(
-                                "Missing frontmatter (recommended for SKILL.md)", file_path=skill_md
-                            )
+                            self.violation("Missing frontmatter", file_path=agent_file)
                         )
                         continue
 
                     # Parse frontmatter
                     frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
                     if not frontmatter_match:
+                        violations.append(
+                            self.violation("Invalid frontmatter format", file_path=agent_file)
+                        )
                         continue
 
                     frontmatter = frontmatter_match.group(1)
 
-                    # Check for recommended fields
-                    if "name:" not in frontmatter:
-                        violations.append(
-                            self.violation("Missing 'name' in SKILL.md frontmatter", file_path=skill_md)
-                        )
-
+                    # Check for required fields
                     if "description:" not in frontmatter:
                         violations.append(
+                            self.violation("Missing 'description' in frontmatter", file_path=agent_file)
+                        )
+
+                    if "capabilities:" not in frontmatter:
+                        violations.append(
                             self.violation(
-                                "Missing 'description' in SKILL.md frontmatter", file_path=skill_md
+                                "Missing 'capabilities' in frontmatter", file_path=agent_file
                             )
                         )
 
