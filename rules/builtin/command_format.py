@@ -32,18 +32,17 @@ class CommandNamingRule(Rule):
         violations = []
 
         for plugin_path in context.plugins:
-            commands_dir = plugin_path / "commands"
-            if not commands_dir.exists():
-                continue
-
-            for cmd_file in commands_dir.glob("*.md"):
-                cmd_name = cmd_file.stem
-                if not self._is_kebab_case(cmd_name):
-                    violations.append(
-                        self.violation(
-                            f"Command name '{cmd_name}' should use kebab-case", file_path=cmd_file
+            # Get all command directories from plugin.json
+            for commands_dir in context.get_commands_dirs(plugin_path):
+                for cmd_file in commands_dir.glob("*.md"):
+                    cmd_name = cmd_file.stem
+                    if not self._is_kebab_case(cmd_name):
+                        violations.append(
+                            self.violation(
+                                f"Command name '{cmd_name}' should use kebab-case",
+                                file_path=cmd_file,
+                            )
                         )
-                    )
 
         return violations
 
@@ -70,40 +69,38 @@ class CommandFrontmatterRule(Rule):
         violations = []
 
         for plugin_path in context.plugins:
-            commands_dir = plugin_path / "commands"
-            if not commands_dir.exists():
-                continue
+            # Get all command directories from plugin.json
+            for commands_dir in context.get_commands_dirs(plugin_path):
+                for cmd_file in commands_dir.glob("*.md"):
+                    try:
+                        with open(cmd_file, "r") as f:
+                            content = f.read()
+                    except IOError as e:
+                        violations.append(
+                            self.violation(f"Failed to read file: {e}", file_path=cmd_file)
+                        )
+                        continue
 
-            for cmd_file in commands_dir.glob("*.md"):
-                try:
-                    with open(cmd_file, "r") as f:
-                        content = f.read()
-                except IOError as e:
-                    violations.append(
-                        self.violation(f"Failed to read file: {e}", file_path=cmd_file)
-                    )
-                    continue
+                    # Check for frontmatter
+                    if not content.startswith("---"):
+                        violations.append(self.violation("Missing frontmatter", file_path=cmd_file))
+                        continue
 
-                # Check for frontmatter
-                if not content.startswith("---"):
-                    violations.append(self.violation("Missing frontmatter", file_path=cmd_file))
-                    continue
+                    # Parse frontmatter
+                    frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+                    if not frontmatter_match:
+                        violations.append(
+                            self.violation("Invalid frontmatter format", file_path=cmd_file)
+                        )
+                        continue
 
-                # Parse frontmatter
-                frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-                if not frontmatter_match:
-                    violations.append(
-                        self.violation("Invalid frontmatter format", file_path=cmd_file)
-                    )
-                    continue
+                    frontmatter = frontmatter_match.group(1)
 
-                frontmatter = frontmatter_match.group(1)
-
-                # Check for required fields
-                if "description:" not in frontmatter:
-                    violations.append(
-                        self.violation("Missing 'description' in frontmatter", file_path=cmd_file)
-                    )
+                    # Check for required fields
+                    if "description:" not in frontmatter:
+                        violations.append(
+                            self.violation("Missing 'description' in frontmatter", file_path=cmd_file)
+                        )
 
         return violations
 
@@ -131,25 +128,23 @@ class CommandSectionsRule(Rule):
         )
 
         for plugin_path in context.plugins:
-            commands_dir = plugin_path / "commands"
-            if not commands_dir.exists():
-                continue
+            # Get all command directories from plugin.json
+            for commands_dir in context.get_commands_dirs(plugin_path):
+                for cmd_file in commands_dir.glob("*.md"):
+                    try:
+                        with open(cmd_file, "r") as f:
+                            content = f.read()
+                    except IOError:
+                        continue
 
-            for cmd_file in commands_dir.glob("*.md"):
-                try:
-                    with open(cmd_file, "r") as f:
-                        content = f.read()
-                except IOError:
-                    continue
-
-                for section in required_sections:
-                    pattern = rf"^##\s+{section}\s*$"
-                    if not re.search(pattern, content, re.MULTILINE):
-                        violations.append(
-                            self.violation(
-                                f"Missing recommended section '## {section}'", file_path=cmd_file
+                    for section in required_sections:
+                        pattern = rf"^##\s+{section}\s*$"
+                        if not re.search(pattern, content, re.MULTILINE):
+                            violations.append(
+                                self.violation(
+                                    f"Missing recommended section '## {section}'", file_path=cmd_file
+                                )
                             )
-                        )
 
         return violations
 
@@ -173,31 +168,29 @@ class CommandNameFormatRule(Rule):
 
         for plugin_path in context.plugins:
             plugin_name = context.get_plugin_name(plugin_path)
-            commands_dir = plugin_path / "commands"
 
-            if not commands_dir.exists():
-                continue
+            # Get all command directories from plugin.json
+            for commands_dir in context.get_commands_dirs(plugin_path):
+                for cmd_file in commands_dir.glob("*.md"):
+                    cmd_name = cmd_file.stem
+                    expected_name = f"{plugin_name}:{cmd_name}"
 
-            for cmd_file in commands_dir.glob("*.md"):
-                cmd_name = cmd_file.stem
-                expected_name = f"{plugin_name}:{cmd_name}"
+                    try:
+                        with open(cmd_file, "r") as f:
+                            content = f.read()
+                    except IOError:
+                        continue
 
-                try:
-                    with open(cmd_file, "r") as f:
-                        content = f.read()
-                except IOError:
-                    continue
-
-                # Find Name section
-                name_match = re.search(r"^##\s+Name\s*\n+([^\n#]+)", content, re.MULTILINE)
-                if name_match:
-                    name_content = name_match.group(1).strip()
-                    if expected_name not in name_content:
-                        violations.append(
-                            self.violation(
-                                f"Name section should contain '{expected_name}', found: '{name_content}'",
-                                file_path=cmd_file,
+                    # Find Name section
+                    name_match = re.search(r"^##\s+Name\s*\n+([^\n#]+)", content, re.MULTILINE)
+                    if name_match:
+                        name_content = name_match.group(1).strip()
+                        if expected_name not in name_content:
+                            violations.append(
+                                self.violation(
+                                    f"Name section should contain '{expected_name}', found: '{name_content}'",
+                                    file_path=cmd_file,
+                                )
                             )
-                        )
 
         return violations

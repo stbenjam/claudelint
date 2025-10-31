@@ -161,8 +161,9 @@ class CommandsDirRequiredRule(Rule):
         violations = []
 
         for plugin_path in context.plugins:
-            commands_dir = plugin_path / "commands"
-            if not commands_dir.exists():
+            # Get all command directories from plugin.json
+            commands_dirs = context.get_commands_dirs(plugin_path)
+            if not commands_dirs:
                 violations.append(
                     self.violation("Missing commands directory", file_path=plugin_path)
                 )
@@ -188,16 +189,24 @@ class CommandsExistRule(Rule):
         violations = []
 
         for plugin_path in context.plugins:
-            commands_dir = plugin_path / "commands"
+            # Get all command directories from plugin.json
+            commands_dirs = context.get_commands_dirs(plugin_path)
 
-            if not commands_dir.exists():
+            if not commands_dirs:
                 continue  # Handled by commands-dir-required
 
-            command_files = list(commands_dir.glob("*.md"))
-            if not command_files:
+            # Check if any command directory has files
+            has_commands = False
+            for commands_dir in commands_dirs:
+                command_files = list(commands_dir.glob("*.md"))
+                if command_files:
+                    has_commands = True
+                    break
+
+            if not has_commands:
                 violations.append(
                     self.violation(
-                        "No command files found in commands directory", file_path=commands_dir
+                        "No command files found in any commands directory", file_path=plugin_path
                     )
                 )
 

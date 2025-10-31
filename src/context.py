@@ -36,6 +36,8 @@ class RepositoryContext:
         self.repo_type = self._detect_type()
         self.marketplace_data = self._load_marketplace() if self.has_marketplace() else None
         self.plugins = self._discover_plugins()
+        # Cache plugin.json data for each plugin
+        self._plugin_data_cache: Dict[Path, Optional[Dict[str, Any]]] = {}
 
     def _detect_type(self) -> RepositoryType:
         """Detect the type of repository"""
@@ -118,6 +120,172 @@ class RepositoryContext:
             return False
 
         return any(p.get("name") == plugin_name for p in self.marketplace_data["plugins"])
+
+    def get_plugin_data(self, plugin_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        Get plugin.json data for a plugin, with caching
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            Dict with plugin.json data, or None if not found/invalid
+        """
+        if plugin_path in self._plugin_data_cache:
+            return self._plugin_data_cache[plugin_path]
+
+        plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
+        if not plugin_json.exists():
+            self._plugin_data_cache[plugin_path] = None
+            return None
+
+        try:
+            with open(plugin_json, "r") as f:
+                data = json.load(f)
+                self._plugin_data_cache[plugin_path] = data
+                return data
+        except (json.JSONDecodeError, IOError):
+            self._plugin_data_cache[plugin_path] = None
+            return None
+
+    def get_commands_dirs(self, plugin_path: Path) -> List[Path]:
+        """
+        Get all command directories for a plugin
+
+        Checks plugin.json for custom paths, falls back to commands/
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            List of paths to command directories
+        """
+        dirs = []
+        plugin_data = self.get_plugin_data(plugin_path)
+
+        # Check plugin.json for custom commands paths
+        if plugin_data and "commands" in plugin_data:
+            commands_config = plugin_data["commands"]
+            if isinstance(commands_config, str):
+                # Single path
+                custom_path = plugin_path / commands_config.lstrip("./")
+                if custom_path.exists() and custom_path.is_dir():
+                    dirs.append(custom_path)
+            elif isinstance(commands_config, list):
+                # Multiple paths
+                for cmd_path in commands_config:
+                    if isinstance(cmd_path, str):
+                        custom_path = plugin_path / cmd_path.lstrip("./")
+                        if custom_path.exists() and custom_path.is_dir():
+                            dirs.append(custom_path)
+
+        # Always include default commands/ directory
+        default_commands = plugin_path / "commands"
+        if default_commands.exists() and default_commands not in dirs:
+            dirs.append(default_commands)
+
+        return dirs
+
+    def get_agents_dirs(self, plugin_path: Path) -> List[Path]:
+        """
+        Get all agent directories for a plugin
+
+        Checks plugin.json for custom paths, falls back to agents/
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            List of paths to agent directories
+        """
+        dirs = []
+        plugin_data = self.get_plugin_data(plugin_path)
+
+        # Check plugin.json for custom agents paths
+        if plugin_data and "agents" in plugin_data:
+            agents_config = plugin_data["agents"]
+            if isinstance(agents_config, str):
+                custom_path = plugin_path / agents_config.lstrip("./")
+                if custom_path.exists() and custom_path.is_dir():
+                    dirs.append(custom_path)
+            elif isinstance(agents_config, list):
+                for agent_path in agents_config:
+                    if isinstance(agent_path, str):
+                        custom_path = plugin_path / agent_path.lstrip("./")
+                        if custom_path.exists() and custom_path.is_dir():
+                            dirs.append(custom_path)
+
+        # Always include default agents/ directory
+        default_agents = plugin_path / "agents"
+        if default_agents.exists() and default_agents not in dirs:
+            dirs.append(default_agents)
+
+        return dirs
+
+    def get_skills_dirs(self, plugin_path: Path) -> List[Path]:
+        """
+        Get all skills directories for a plugin
+
+        Checks plugin.json for custom paths, falls back to skills/
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            List of paths to skills directories
+        """
+        dirs = []
+        plugin_data = self.get_plugin_data(plugin_path)
+
+        # Check plugin.json for custom skills paths
+        if plugin_data and "skills" in plugin_data:
+            skills_config = plugin_data["skills"]
+            if isinstance(skills_config, str):
+                custom_path = plugin_path / skills_config.lstrip("./")
+                if custom_path.exists() and custom_path.is_dir():
+                    dirs.append(custom_path)
+            elif isinstance(skills_config, list):
+                for skill_path in skills_config:
+                    if isinstance(skill_path, str):
+                        custom_path = plugin_path / skill_path.lstrip("./")
+                        if custom_path.exists() and custom_path.is_dir():
+                            dirs.append(custom_path)
+
+        # Always include default skills/ directory
+        default_skills = plugin_path / "skills"
+        if default_skills.exists() and default_skills not in dirs:
+            dirs.append(default_skills)
+
+        return dirs
+
+    def get_hooks_path(self, plugin_path: Path) -> Optional[Path]:
+        """
+        Get hooks configuration path for a plugin
+
+        Checks plugin.json for custom path, falls back to hooks/hooks.json
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            Path to hooks configuration file, or None if not found
+        """
+        plugin_data = self.get_plugin_data(plugin_path)
+
+        # Check plugin.json for custom hooks path
+        if plugin_data and "hooks" in plugin_data:
+            hooks_config = plugin_data["hooks"]
+            if isinstance(hooks_config, str):
+                custom_path = plugin_path / hooks_config.lstrip("./")
+                if custom_path.exists() and custom_path.is_file():
+                    return custom_path
+
+        # Check default location
+        default_hooks = plugin_path / "hooks" / "hooks.json"
+        if default_hooks.exists():
+            return default_hooks
+
+        return None
 
     def __str__(self):
         """String representation of context"""

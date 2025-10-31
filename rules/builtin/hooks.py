@@ -48,22 +48,21 @@ class HookValidationRule(Rule):
         valid_types = {"command", "validation", "notification"}
 
         for plugin_path in context.plugins:
-            hooks_file = plugin_path / "hooks" / "hooks.json"
-            if not hooks_file.exists():
-                # Also check for inline hooks in plugin.json
+            # Get hooks path from context (handles custom paths in plugin.json)
+            hooks_file = context.get_hooks_path(plugin_path)
+
+            # Also check for inline hooks in plugin.json
+            plugin_data = context.get_plugin_data(plugin_path)
+            if plugin_data and "hooks" in plugin_data and isinstance(plugin_data["hooks"], dict):
+                # Inline hooks configuration
                 plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
-                if plugin_json.exists():
-                    try:
-                        with open(plugin_json, "r") as f:
-                            plugin_data = json.load(f)
-                        if "hooks" in plugin_data:
-                            # Validate inline hooks
-                            self._validate_hooks_structure(
-                                plugin_data, plugin_json, violations, valid_events, valid_types
-                            )
-                    except (json.JSONDecodeError, IOError):
-                        pass  # Handled by other rules
+                self._validate_hooks_structure(
+                    plugin_data, plugin_json, violations, valid_events, valid_types
+                )
                 continue
+
+            if not hooks_file:
+                continue  # No hooks file found
 
             # Validate hooks.json file
             try:
