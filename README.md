@@ -1,6 +1,6 @@
 # claudelint
 
-A configurable, rule-based linter for [Claude Code](https://docs.claude.com/en/docs/claude-code) plugins.
+A configurable, rule-based linter for [Claude Code](https://docs.claude.com/en/docs/claude-code) [plugins](https://docs.claude.com/en/docs/claude-code/plugins) and [plugin marketplaces](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces).
 
 ## Features
 
@@ -73,6 +73,10 @@ my-plugin/
 ```
 
 ### Marketplace (Multiple Plugins)
+
+claudelint supports multiple marketplace structures per the [Claude Code specification](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces):
+
+#### Traditional Structure (plugins/ directory)
 ```
 marketplace/
 ├── .claude-plugin/
@@ -85,6 +89,66 @@ marketplace/
         ├── .claude-plugin/
         └── commands/
 ```
+
+#### Flat Structure (root-level plugin)
+```
+marketplace/
+├── .claude-plugin/
+│   └── marketplace.json    # source: "./"
+├── commands/                # Plugin components at root
+│   └── my-command.md
+└── skills/
+    └── my-skill/
+```
+
+#### Custom Paths
+```
+marketplace/
+├── .claude-plugin/
+│   └── marketplace.json    # source: "./custom/my-plugin"
+└── custom/
+    └── my-plugin/
+        ├── commands/
+        └── skills/
+```
+
+#### Mixed Structures
+Plugins from `plugins/`, custom paths, and remote sources can coexist in one marketplace. Only local sources are validated.
+
+## Marketplace Features
+
+### Flexible Plugin Sources
+
+claudelint understands all [plugin source types](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces#plugin-sources) and validates any sources that resolve to local paths:
+
+- **Relative paths**: `"source": "./"` (flat structure), `"source": "./custom/path"`
+- **GitHub repositories**: `"source": {"source": "github", "repo": "owner/repo"}`
+- **Git URLs**: `"source": {"source": "url", "url": "https://..."}`
+
+Remote sources (GitHub, git URLs) are logged and skipped during local validation. They are valid per spec but cannot be checked until the plugin is fetched locally.
+
+### Strict Mode
+
+The `strict` field in marketplace entries controls validation behavior:
+
+```json5
+{
+  "name": "my-plugin",
+  "source": "./",
+  "strict": false,    // plugin.json becomes optional
+  "description": "Plugin description can be in marketplace.json"
+}
+```
+
+When `strict: false`:
+- `plugin.json` is optional
+- Marketplace entry serves as the complete plugin manifest
+- Plugin metadata is validated from marketplace.json
+- Skills, commands, and other components work normally
+
+When `strict: true` (default):
+- `plugin.json` is required
+- Marketplace entry supplements plugin.json metadata
 
 ## Configuration
 
@@ -135,14 +199,14 @@ This creates `.claudelint.yaml` with all builtin rules enabled.
 
 ### Plugin Structure
 
-| Rule ID | Description | Default Severity |
-|---------|-------------|------------------|
-| `plugin-json-required` | Plugin must have `.claude-plugin/plugin.json` | error |
-| `plugin-json-valid` | Plugin.json must be valid with required fields | error |
-| `plugin-naming` | Plugin names should use kebab-case | warning |
-| `commands-dir-required` | Plugin should have a commands directory | warning (disabled by default) |
-| `commands-exist` | Plugin should have at least one command file | info (disabled by default) |
-| `plugin-readme` | Plugin should have a README.md file | warning |
+| Rule ID | Description | Default Severity | Notes |
+|---------|-------------|------------------|-------|
+| `plugin-json-required` | Plugin must have `.claude-plugin/plugin.json` | error | Skipped when `strict: false` in marketplace |
+| `plugin-json-valid` | Plugin.json must be valid with required fields | error | |
+| `plugin-naming` | Plugin names should use kebab-case | warning | |
+| `commands-dir-required` | Plugin should have a commands directory | warning (disabled by default) | |
+| `commands-exist` | Plugin should have at least one command file | info (disabled by default) | |
+| `plugin-readme` | Plugin should have a README.md file | warning | |
 
 ### Command Format
 
@@ -155,10 +219,10 @@ This creates `.claudelint.yaml` with all builtin rules enabled.
 
 ### Marketplace
 
-| Rule ID | Description | Default Severity |
-|---------|-------------|------------------|
-| `marketplace-json-valid` | Marketplace.json must be valid JSON | error (auto) |
-| `marketplace-registration` | Plugins must be registered in marketplace.json | error (auto) |
+| Rule ID | Description | Default Severity | Notes |
+|---------|-------------|------------------|-------|
+| `marketplace-json-valid` | Marketplace.json must be valid JSON | error (auto) | |
+| `marketplace-registration` | Plugins must be registered in marketplace.json | error (auto) | Supports flat structures, custom paths, and remote sources |
 
 ### Skills
 
