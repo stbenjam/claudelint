@@ -44,7 +44,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
+*.py.cover
 .hypothesis/
 .pytest_cache/
 cover/
@@ -147,4 +147,3 @@ cython_debug/
 examples/test-repos/
 .work/
 .claude/
-

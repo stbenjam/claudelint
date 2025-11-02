@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -46,14 +46,14 @@ Repository = "https://github.com/stbenjam/claudelint"
 Issues = "https://github.com/stbenjam/claudelint/issues"
 
 [project.scripts]
-claudelint = "claudelint:main"
+claudelint = "claudelint.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["src*", "rules*"]
-
-[tool.setuptools.package-data]
-"rules.builtin" = ["*.py"]
+where = ["src"]
+include = ["claudelint*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

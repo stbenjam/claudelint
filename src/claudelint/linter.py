@@ -46,24 +46,16 @@ class ClaudeLinter:
                 )
 
     def _load_builtin_rules(self):
-        """Load builtin rules from rules/builtin/"""
-        try:
-            # Import builtin rules - handle both package and script execution
-            try:
-                from rules.builtin import BUILTIN_RULES
-            except ImportError:
-                from ..rules.builtin import BUILTIN_RULES
+        """Load builtin rules from claudelint.rules.builtin"""
+        from .rules.builtin import BUILTIN_RULES
 
-            for rule_class in BUILTIN_RULES:
-                # Create instance with config
-                rule_instance = rule_class(self.config.get_rule_config(rule_class.rule_id))
+        for rule_class in BUILTIN_RULES:
+            # Create instance with config
+            rule_instance = rule_class(self.config.get_rule_config(rule_class.rule_id))
 
-                # Check if enabled for this context
-                if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
-                    self.rules.append(rule_instance)
-
-        except ImportError as e:
-            print(f"Warning: Failed to load builtin rules: {e}", file=sys.stderr)
+            # Check if enabled for this context
+            if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
+                self.rules.append(rule_instance)
 
     def _load_custom_rule(self, rule_path: str):
         """
