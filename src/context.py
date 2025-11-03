@@ -2,10 +2,15 @@
 Repository context detection and management
 """
 
+from __future__ import annotations
+
 from enum import Enum
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Set
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class RepositoryType(Enum):
@@ -33,6 +38,9 @@ class RepositoryContext:
         self.root_path = root_path.resolve()
         self.repo_type = self._detect_type()
         self.marketplace_data = self._load_marketplace() if self.has_marketplace() else None
+        self.plugin_metadata: Dict[Path, Dict[str, Any]] = (
+            {}
+        )  # marketplace metadata for strict:false plugins without plugin.json
         self.plugins = self._discover_plugins()
 
     def _detect_type(self) -> RepositoryType:
@@ -67,42 +75,205 @@ class RepositoryContext:
         except (json.JSONDecodeError, IOError):
             return None
 
+    def _resolve_plugin_source(self, source: Any, plugin_entry: Dict[str, Any]) -> Optional[Path]:
+        """
+        Resolve a plugin source from marketplace.json to a local path
+
+        Handles relative paths (e.g., "./", "./custom/path") and remote sources
+        (GitHub repos, git URLs). Remote sources are logged but skipped for local validation.
+
+        Args:
+            source: Plugin source (string path or dict with source type)
+            plugin_entry: Full plugin entry for context (used for logging)
+
+        Returns:
+            Resolved Path if local and valid, None otherwise
+        """
+        plugin_name = plugin_entry.get("name", "unknown")
+
+        # Handle relative path strings
+        if isinstance(source, str):
+            candidate = (self.root_path / source).resolve()
+
+            # Disallow escaping the repo with .. paths
+            try:
+                candidate.relative_to(self.root_path)
+            except ValueError:
+                logger.warning(
+                    "Plugin '%s' source '%s' escapes repository root. Skipping.",
+                    plugin_name,
+                    source,
+                )
+                return None
+
+            if not candidate.exists():
+                logger.info(
+                    "Plugin '%s' source '%s' not found locally. Skipping.", plugin_name, source
+                )
+                return None
+
+            if not candidate.is_dir():
+                logger.info(
+                    "Plugin '%s' source '%s' is not a directory. Skipping.", plugin_name, source
+                )
+                return None
+
+            return candidate
+
+        # Handle remote source objects (GitHub, git URLs)
+        if isinstance(source, dict):
+            source_type = source.get("source", "unknown")
+            source_info = source.get("repo") or source.get("url", "unknown")
+            logger.info(
+                "Plugin '%s' uses remote source (%s: %s). Skipping local validation.",
+                plugin_name,
+                source_type,
+                source_info,
+            )
+            return None
+
+        # Unknown format
+        logger.info("Plugin '%s' has unknown source format. Skipping.", plugin_name)
+        return None
+
+    def _is_valid_plugin_dir(
+        self, path: Path, marketplace_entry: Optional[Dict[str, Any]] = None
+    ) -> bool:
+        """
+        Check if a directory is a valid plugin directory
+
+        A directory is valid if it has plugin.json, standard component directories
+        (commands, agents, skills, hooks), or if the marketplace entry has strict: false.
+
+        Args:
+            path: Directory path to check
+            marketplace_entry: Optional marketplace entry for the plugin
+
+        Returns:
+            True if directory appears to be a valid plugin
+        """
+        # Check for plugin.json or standard component directories
+        plugin_markers = [
+            path / ".claude-plugin" / "plugin.json",
+            path / "commands",
+            path / "agents",
+            path / "skills",
+            path / "hooks",
+        ]
+
+        if any(marker.exists() for marker in plugin_markers):
+            return True
+
+        # When strict:false, plugin.json and component dirs can be absent
+        if marketplace_entry is not None and marketplace_entry.get("strict", True) is False:
+            return True
+
+        return False
+
     def _discover_plugins(self) -> List[Path]:
-        """Discover all plugin directories in the repository"""
-        plugins = []
+        """
+        Discover all plugin directories in the repository
+
+        Handles three discovery methods:
+        1. Single plugin at repository root
+        2. Traditional plugins/ directory (backward compatibility)
+        3. Marketplace.json-defined sources (flat structures, custom paths, remote)
+        """
+        plugins: List[Path] = []
+        discovered_paths: Set[Path] = set()
 
         if self.repo_type == RepositoryType.SINGLE_PLUGIN:
-            # The root is the plugin
             plugins.append(self.root_path)
+            discovered_paths.add(self.root_path.resolve())
 
         elif self.repo_type == RepositoryType.MARKETPLACE:
-            # Look for plugins in plugins/ directory
-            plugins_dir = self.root_path / "plugins"
-            if plugins_dir.exists():
-                for item in plugins_dir.iterdir():
-                    if item.is_dir() and not item.name.startswith("."):
-                        # Check if it has .claude-plugin or commands directory
-                        if (item / ".claude-plugin").exists() or (item / "commands").exists():
-                            plugins.append(item)
+            # Discover from plugins/ directory (backward compatibility)
+            self._discover_from_plugins_dir(plugins, discovered_paths)
+
+            # Discover from marketplace.json plugin entries
+            self._discover_from_marketplace(plugins, discovered_paths)
 
         return plugins
 
+    def _discover_from_plugins_dir(self, plugins: List[Path], discovered_paths: Set[Path]) -> None:
+        """Discover plugins from traditional plugins/ directory"""
+        plugins_dir = self.root_path / "plugins"
+        if not plugins_dir.exists():
+            return
+
+        for item in plugins_dir.iterdir():
+            if not item.is_dir() or item.name.startswith("."):
+                continue
+
+            # Must have .claude-plugin or commands directory
+            if not ((item / ".claude-plugin").exists() or (item / "commands").exists()):
+                continue
+
+            resolved_path = item.resolve()
+            if resolved_path not in discovered_paths:
+                plugins.append(item)
+                discovered_paths.add(resolved_path)
+
+    def _discover_from_marketplace(self, plugins: List[Path], discovered_paths: Set[Path]) -> None:
+        """Discover plugins from marketplace.json plugin entries"""
+        if not self.marketplace_data or "plugins" not in self.marketplace_data:
+            return
+
+        for plugin_entry in self.marketplace_data["plugins"]:
+            source = plugin_entry.get("source")
+            if not source:
+                continue
+
+            # Resolve source to local path (or skip if remote)
+            plugin_path = self._resolve_plugin_source(source, plugin_entry)
+            if not plugin_path:
+                continue
+
+            # Skip duplicates
+            resolved_path = plugin_path.resolve()
+            if resolved_path in discovered_paths:
+                continue
+
+            # Validate plugin directory
+            if not self._is_valid_plugin_dir(plugin_path, plugin_entry):
+                continue
+
+            plugins.append(plugin_path)
+            discovered_paths.add(resolved_path)
+
+            # Store metadata for strict: false plugins without plugin.json
+            is_strict = plugin_entry.get("strict", True)
+            has_plugin_json = (plugin_path / ".claude-plugin" / "plugin.json").exists()
+
+            if not is_strict and not has_plugin_json:
+                self.plugin_metadata[resolved_path] = plugin_entry
+
     def get_plugin_name(self, plugin_path: Path) -> str:
-        """Get the name of a plugin from its path"""
-        if plugin_path == self.root_path:
-            # Single plugin at root - check plugin.json for name
-            plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
-            if plugin_json.exists():
-                try:
-                    with open(plugin_json, "r") as f:
-                        data = json.load(f)
-                        return data.get("name", plugin_path.name)
-                except:
-                    pass
-            return plugin_path.name
-        else:
-            # Plugin in plugins/ directory
-            return plugin_path.name
+        """
+        Get the name of a plugin from its path
+
+        Checks plugin.json first, falls back to marketplace metadata,
+        then directory name.
+        """
+        resolved_path = plugin_path.resolve()
+
+        # Try plugin.json
+        plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
+        if plugin_json.exists():
+            try:
+                with open(plugin_json, "r") as f:
+                    data = json.load(f)
+                    if name := data.get("name"):
+                        return name
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        # Try marketplace metadata
+        if resolved_path in self.plugin_metadata:
+            return self.plugin_metadata[resolved_path].get("name", plugin_path.name)
+
+        # Fall back to directory name
+        return plugin_path.name
 
     def is_registered_in_marketplace(self, plugin_name: str) -> bool:
         """Check if a plugin is registered in marketplace.json"""
@@ -110,6 +281,42 @@ class RepositoryContext:
             return False
 
         return any(p.get("name") == plugin_name for p in self.marketplace_data["plugins"])
+
+    def get_plugin_metadata(self, plugin_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        Get complete metadata for a plugin
+
+        Returns metadata from plugin.json if present, otherwise falls back to
+        marketplace entry data (for strict: false plugins without plugin.json).
+
+        Args:
+            plugin_path: Path to the plugin directory
+
+        Returns:
+            Dictionary with plugin metadata, or None if no metadata found
+        """
+        metadata = {}
+        resolved_path = plugin_path.resolve()
+
+        # Load from plugin.json if present
+        plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
+        if plugin_json.exists():
+            try:
+                with open(plugin_json, "r") as f:
+                    metadata = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        # Use marketplace metadata as fallback (for strict: false without plugin.json)
+        if resolved_path in self.plugin_metadata:
+            marketplace_entry = self.plugin_metadata[resolved_path]
+
+            # Exclude marketplace-specific fields
+            for key, value in marketplace_entry.items():
+                if key not in ("source", "strict"):
+                    metadata[key] = value
+
+        return metadata or None
 
     def __str__(self):
         """String representation of context"""

@@ -35,6 +35,14 @@ class PluginJsonRequiredRule(Rule):
         for plugin_path in context.plugins:
             plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
             if not plugin_json.exists():
+                # Check if plugin has strict: false in marketplace metadata
+                resolved_path = plugin_path.resolve()
+                if resolved_path in getattr(context, "plugin_metadata", {}):
+                    marketplace_entry = context.plugin_metadata[resolved_path]
+                    if marketplace_entry.get("strict", True) is False:
+                        # When strict: false, plugin.json is optional
+                        continue
+
                 violations.append(self.violation("Missing plugin.json", file_path=plugin_json))
 
         return violations
