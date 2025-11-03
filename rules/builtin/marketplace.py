@@ -64,6 +64,8 @@ class MarketplaceJsonValidRule(Rule):
 
         if "plugins" not in marketplace:
             violations.append(self.violation("Missing 'plugins' array", file_path=marketplace_file))
+        elif not isinstance(marketplace["plugins"], list):
+            violations.append(self.violation("'plugins' must be an array", file_path=marketplace_file))
 
         return violations
 
