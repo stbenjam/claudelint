@@ -1,3 +1,10 @@
+[![PyPI version](https://badge.fury.io/py/claudelint.svg)](https://badge.fury.io/py/claudelint)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/claudelint)](https://pypi.org/project/claudelint/)
+[![Tests](https://github.com/stbenjam/claudelint/workflows/Tests/badge.svg)](https://github.com/stbenjam/claudelint/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/stbenjam/claudelint/branch/main/graph/badge.svg)](https://codecov.io/gh/stbenjam/claudelint)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python Versions](https://img.shields.io/pypi/pyversions/claudelint.svg)](https://pypi.org/project/claudelint/)
+
 # claudelint
 
 A configurable, rule-based linter for [Claude Code](https://docs.claude.com/en/docs/claude-code) [plugins](https://docs.claude.com/en/docs/claude-code/plugins) and [plugin marketplaces](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces).

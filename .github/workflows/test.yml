@@ -12,15 +12,15 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      
+
       - name: Install package and dependencies
         run: |
           python -m pip install --upgrade pip
@@ -30,30 +30,30 @@ jobs:
       - name: Run tests
         run: |
           pytest tests/ -v --cov=src/claudelint --cov-report=xml --cov-report=term
-      
+
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         if: matrix.python-version == '3.11'
         with:
-          file: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-  
+
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install black flake8
-      
+
       - name: Check formatting with black
         run: black --check src/ tests/
 
@@ -63,18 +63,18 @@ jobs:
           flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
           # Exit-zero treats all errors as warnings
           flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
-  
+
   integration:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Install package
         run: |
           python -m pip install --upgrade pip
