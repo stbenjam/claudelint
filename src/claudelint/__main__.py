@@ -166,4 +166,4 @@ For more information, visit: https://github.com/stbenjam/claudelint
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
