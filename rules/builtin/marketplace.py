@@ -55,6 +55,15 @@ class MarketplaceJsonValidRule(Rule):
             )
             return violations
 
+        # Validate that marketplace is a dictionary
+        if not isinstance(marketplace, dict):
+            violations.append(
+                self.violation(
+                    "Marketplace file must contain a JSON object", file_path=marketplace_file
+                )
+            )
+            return violations
+
         # Validate required fields
         if "name" not in marketplace:
             violations.append(self.violation("Missing 'name' field", file_path=marketplace_file))
