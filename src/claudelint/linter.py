@@ -37,13 +37,7 @@ class ClaudeLinter:
 
         # Load custom rules
         for custom_rule_path in self.config.custom_rules:
-            try:
-                self._load_custom_rule(custom_rule_path)
-            except Exception as e:
-                print(
-                    f"Warning: Failed to load custom rule from {custom_rule_path}: {e}",
-                    file=sys.stderr,
-                )
+            self._load_custom_rule(custom_rule_path)
 
     def _load_builtin_rules(self):
         """Load builtin rules from claudelint.rules.builtin"""
