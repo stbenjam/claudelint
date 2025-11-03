@@ -28,7 +28,7 @@ jobs:
       
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=src --cov=rules --cov-report=xml --cov-report=term
+          pytest tests/ -v --cov=src/claudelint --cov-report=xml --cov-report=term
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -54,14 +54,14 @@ jobs:
           pip install black flake8
       
       - name: Check formatting with black
-        run: black --check src/ rules/ tests/
-      
+        run: black --check src/ tests/
+
       - name: Lint with flake8
         run: |
           # Stop the build if there are Python syntax errors or undefined names
-          flake8 src/ rules/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
           # Exit-zero treats all errors as warnings
-          flake8 src/ rules/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+          flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
   
   integration:
     runs-on: ubuntu-latest
@@ -74,31 +74,28 @@ jobs:
         with:
           python-version: "3.11"
       
-      - name: Install dependencies
+      - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install PyYAML
-      
-      - name: Make claudelint executable
-        run: chmod +x claudelint
-      
+          pip install .
+
       - name: Test --version
-        run: ./claudelint --version
-      
+        run: claudelint --version
+
       - name: Test --list-rules
-        run: ./claudelint --list-rules
-      
+        run: claudelint --list-rules
+
       - name: Test --init
         run: |
           cd /tmp
-          $GITHUB_WORKSPACE/claudelint --init
+          claudelint --init
           test -f .claudelint.yaml
-      
+
       - name: Create test plugin and lint it
         run: |
           mkdir -p /tmp/test-plugin/.claude-plugin
           mkdir -p /tmp/test-plugin/commands
-          
+
           # Create plugin.json
           cat > /tmp/test-plugin/.claude-plugin/plugin.json << 'EOF'
           {
@@ -108,31 +105,31 @@ jobs:
             "author": {"name": "Test"}
           }
           EOF
-          
+
           # Create command
           cat > /tmp/test-plugin/commands/test.md << 'EOF'
           ---
           description: Test command
           ---
-          
+
           ## Name
           test-plugin:test
-          
+
           ## Synopsis
           ```
           /test-plugin:test
           ```
-          
+
           ## Description
           Test command
-          
+
           ## Implementation
           Do something
           EOF
-          
+
           # Lint it
-          ./claudelint /tmp/test-plugin
-          
+          claudelint /tmp/test-plugin
+
           # Should pass with no errors
           if [ $? -ne 0 ]; then
             echo "Linting failed!"
