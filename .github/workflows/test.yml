@@ -139,3 +139,17 @@ jobs:
             exit 1
           fi
 
+      - name: Test ai-helpers repo
+        run: |
+          # Clone ai-helpers repo
+          git clone https://github.com/openshift-eng/ai-helpers.git /tmp/ai-helpers
+
+          # Lint it
+          ./claudelint /tmp/ai-helpers
+
+          # Should pass with no errors
+          if [ $? -ne 0 ]; then
+            echo "ai-helpers repo failed claudelint!"
+            exit 1
+          fi
+

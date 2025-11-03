@@ -146,4 +146,5 @@ cython_debug/
 # Project specific
 examples/test-repos/
 .work/
+.claude/
 
