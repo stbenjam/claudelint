@@ -5,21 +5,19 @@ Tests for builtin rules
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.context import RepositoryContext
-from src.rule import Severity
-from rules.builtin.plugin_structure import (
+from claudelint.context import RepositoryContext
+from claudelint.rule import Severity
+from claudelint.rules.builtin.plugin_structure import (
     PluginJsonRequiredRule,
     PluginJsonValidRule,
     PluginNamingRule,
 )
-from rules.builtin.command_format import (
+from claudelint.rules.builtin.command_format import (
     CommandNamingRule,
     CommandFrontmatterRule,
 )
-from rules.builtin.marketplace import (
+from claudelint.rules.builtin.marketplace import (
     MarketplaceRegistrationRule,
 )
 

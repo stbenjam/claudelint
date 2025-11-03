@@ -13,7 +13,20 @@ A configurable, rule-based linter for [Claude Code](https://docs.claude.com/en/d
 
 ## Installation
 
-### Via pip (recommended)
+### Via uvx (easiest - no install required)
+
+```bash
+# From git (works before PyPI release)
+uvx --from 'git+https://github.com/stbenjam/claudelint' claudelint
+
+# Once published to PyPI, simply:
+uvx claudelint
+
+# With specific path
+uvx --from 'git+https://github.com/stbenjam/claudelint' claudelint /path/to/plugin
+```
+
+### Via pip (recommended for regular use)
 
 ```bash
 pip install claudelint

@@ -7,12 +7,8 @@ import re
 from pathlib import Path
 from typing import List
 
-try:
-    from src.rule import Rule, RuleViolation, Severity
-    from src.context import RepositoryContext
-except ImportError:
-    from ...src.rule import Rule, RuleViolation, Severity
-    from ...src.context import RepositoryContext
+from claudelint.rule import Rule, RuleViolation, Severity
+from claudelint.context import RepositoryContext
 
 
 class PluginJsonRequiredRule(Rule):

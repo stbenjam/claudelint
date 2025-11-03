@@ -7,20 +7,13 @@ LABEL org.opencontainers.image.licenses="Apache-2.0"
 # Set working directory
 WORKDIR /app
 
-# Copy application files
-COPY src/ /app/src/
-COPY rules/ /app/rules/
-COPY claudelint /app/claudelint
+# Copy package files
 COPY pyproject.toml /app/pyproject.toml
 COPY README.md /app/README.md
+COPY src/ /app/src/
 
-# Install dependencies
-RUN pip install --no-cache-dir PyYAML>=6.0 && \
-    chmod +x /app/claudelint
-
-# Add app to PATH
-ENV PATH="/app:${PATH}"
-ENV PYTHONPATH="/app:${PYTHONPATH}"
+# Install the package
+RUN pip install --no-cache-dir /app
 
 # Set default working directory for linting
 WORKDIR /workspace
@@ -28,4 +21,3 @@ WORKDIR /workspace
 # Run linter by default
 ENTRYPOINT ["claudelint"]
 CMD []
-

@@ -5,12 +5,10 @@ Tests for main linter functionality
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.linter import ClaudeLinter
-from src.context import RepositoryContext
-from src.config import LinterConfig
+from claudelint.linter import ClaudeLinter
+from claudelint.context import RepositoryContext
+from claudelint.config import LinterConfig
 
 
 def test_linter_passes_valid_plugin(valid_plugin):

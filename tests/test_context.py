@@ -6,10 +6,8 @@ import json
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.context import RepositoryContext, RepositoryType
+from claudelint.context import RepositoryContext, RepositoryType
 
 
 def test_single_plugin_detection(valid_plugin):

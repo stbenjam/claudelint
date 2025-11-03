@@ -1,22 +1,16 @@
-#!/usr/bin/env python3
 """
-claudelint - Configurable linter for Claude Code plugins
-
-A rule-based validation tool that can lint individual plugins or entire
-plugin marketplaces with configurable rules and custom extensions.
+Entry point for python -m claudelint
 """
 
 import argparse
 import sys
 from pathlib import Path
+from importlib.metadata import version, PackageNotFoundError
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent))
-
-from src.context import RepositoryContext, RepositoryType
-from src.config import LinterConfig, find_config
-from src.linter import ClaudeLinter
-from src.rule import Severity
+from .context import RepositoryContext, RepositoryType
+from .config import LinterConfig, find_config
+from .linter import ClaudeLinter
+from . import __version__
 
 
 def main():
@@ -27,19 +21,19 @@ def main():
 Examples:
   # Lint current directory
   claudelint
-  
+
   # Lint specific directory
   claudelint /path/to/plugin
-  
+
   # Use custom config
   claudelint --config .my-lint-config.yaml
-  
+
   # Verbose output
   claudelint -v
-  
+
   # Strict mode (warnings as errors)
   claudelint --strict
-  
+
   # Generate default config
   claudelint --init
 
@@ -78,7 +72,13 @@ For more information, visit: https://github.com/stbenjam/claudelint
         "--list-rules", action="store_true", help="List all available builtin rules"
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    # Get version from package metadata, fall back to __version__
+    try:
+        cli_version = version("claudelint")
+    except PackageNotFoundError:
+        cli_version = __version__
+
+    parser.add_argument("--version", action="version", version=f"%(prog)s {cli_version}")
 
     args = parser.parse_args()
 
@@ -96,7 +96,7 @@ For more information, visit: https://github.com/stbenjam/claudelint
 
     # Handle --list-rules
     if args.list_rules:
-        from rules.builtin import BUILTIN_RULES
+        from claudelint.rules.builtin import BUILTIN_RULES
 
         print("Available builtin rules:\n")
         for rule_class in BUILTIN_RULES:

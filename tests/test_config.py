@@ -6,11 +6,9 @@ import sys
 from pathlib import Path
 import yaml
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.config import LinterConfig, find_config
-from src.context import RepositoryContext, RepositoryType
+from claudelint.config import LinterConfig, find_config
+from claudelint.context import RepositoryContext, RepositoryType
 
 
 def test_default_config():
