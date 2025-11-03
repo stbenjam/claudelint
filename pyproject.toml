@@ -8,7 +8,7 @@ version = "0.3.2"
 description = "A configurable, rule-based linter for Claude Code plugins"
 readme = "README.md"
 authors = [
-    {name = "OpenShift Engineering", email = "openshift-eng@redhat.com"}
+    {name = "Stephen Benjamin", email = "stephen@bitbin.de"}
 ]
 license = {text = "Apache-2.0"}
 classifiers = [
