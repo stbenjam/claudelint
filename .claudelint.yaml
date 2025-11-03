@@ -58,6 +58,25 @@ rules:
     enabled: true
     severity: warning
 
+  # Agents rules
+  agent-frontmatter:
+    enabled: true
+    severity: error
+
+  # Hooks rules
+  hooks-json-valid:
+    enabled: true
+    severity: error
+
+  # MCP rules
+  mcp-valid-json:
+    enabled: true
+    severity: error
+
+  mcp-prohibited:
+    enabled: false  # Disabled by default - enable to prohibit MCP usage
+    severity: error
+
 # Load custom rules from these files
 custom-rules: []
   # - ./my-custom-rules.py

@@ -243,6 +243,25 @@ This creates `.claudelint.yaml` with all builtin rules enabled.
 |---------|-------------|------------------|
 | `skill-frontmatter` | SKILL.md files should have frontmatter | warning |
 
+### Agents
+
+| Rule ID | Description | Default Severity |
+|---------|-------------|------------------|
+| `agent-frontmatter` | Agent files must have valid frontmatter with description and capabilities | error |
+
+### Hooks
+
+| Rule ID | Description | Default Severity |
+|---------|-------------|------------------|
+| `hooks-json-valid` | hooks.json must be valid JSON with proper hook configuration structure | error |
+
+### MCP (Model Context Protocol)
+
+| Rule ID | Description | Default Severity | Notes |
+|---------|-------------|------------------|-------|
+| `mcp-valid-json` | MCP configuration must be valid JSON with proper mcpServers structure | error | Validates both `.mcp.json` and `mcpServers` in `plugin.json` |
+| `mcp-prohibited` | Plugins should not enable MCP servers | error (disabled by default) | Security/policy rule - enable to prohibit MCP usage |
+
 ## Custom Rules
 
 Create custom validation rules by extending the `Rule` base class:

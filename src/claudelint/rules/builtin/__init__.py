@@ -27,6 +27,19 @@ from .skills import (
     SkillFrontmatterRule,
 )
 
+from .agents import (
+    AgentFrontmatterRule,
+)
+
+from .hooks import (
+    HooksJsonValidRule,
+)
+
+from .mcp import (
+    McpValidJsonRule,
+    McpProhibitedRule,
+)
+
 
 # All builtin rules
 BUILTIN_RULES = [
@@ -47,6 +60,13 @@ BUILTIN_RULES = [
     MarketplaceRegistrationRule,
     # Skills
     SkillFrontmatterRule,
+    # Agents
+    AgentFrontmatterRule,
+    # Hooks
+    HooksJsonValidRule,
+    # MCP
+    McpValidJsonRule,
+    McpProhibitedRule,
 ]
 
 
@@ -66,4 +86,8 @@ __all__ = [
     "MarketplaceJsonValidRule",
     "MarketplaceRegistrationRule",
     "SkillFrontmatterRule",
+    "AgentFrontmatterRule",
+    "HooksJsonValidRule",
+    "McpValidJsonRule",
+    "McpProhibitedRule",
 ]

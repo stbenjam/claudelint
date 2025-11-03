@@ -76,6 +76,13 @@ class LinterConfig:
                 "plugin-readme": {"enabled": True, "severity": "warning"},
                 # Skills rules
                 "skill-frontmatter": {"enabled": True, "severity": "warning"},
+                # Agents rules
+                "agent-frontmatter": {"enabled": True, "severity": "error"},
+                # Hooks rules
+                "hooks-json-valid": {"enabled": True, "severity": "error"},
+                # MCP rules
+                "mcp-valid-json": {"enabled": True, "severity": "error"},
+                "mcp-prohibited": {"enabled": False, "severity": "error"},
             }
         )
 
