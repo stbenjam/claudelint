@@ -143,7 +143,7 @@ jobs:
           git clone https://github.com/openshift-eng/ai-helpers.git /tmp/ai-helpers
 
           # Lint it
-          ./claudelint /tmp/ai-helpers
+          claudelint /tmp/ai-helpers
 
           # Should pass with no errors
           if [ $? -ne 0 ]; then
