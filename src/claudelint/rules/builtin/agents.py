@@ -18,7 +18,7 @@ class AgentFrontmatterRule(Rule):
 
     @property
     def description(self) -> str:
-        return "Agent files must have valid frontmatter with description and capabilities"
+        return "Agent files must have valid frontmatter with name and description"
 
     def default_severity(self) -> Severity:
         return Severity.ERROR
@@ -58,16 +58,14 @@ class AgentFrontmatterRule(Rule):
                 frontmatter = frontmatter_match.group(1)
 
                 # Check for required fields
+                if "name:" not in frontmatter:
+                    violations.append(
+                        self.violation("Missing 'name' in frontmatter", file_path=agent_file)
+                    )
+
                 if "description:" not in frontmatter:
                     violations.append(
                         self.violation("Missing 'description' in frontmatter", file_path=agent_file)
-                    )
-
-                if "capabilities:" not in frontmatter:
-                    violations.append(
-                        self.violation(
-                            "Missing 'capabilities' in frontmatter", file_path=agent_file
-                        )
                     )
 
         return violations

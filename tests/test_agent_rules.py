@@ -25,8 +25,8 @@ def plugin_with_valid_agent(temp_dir):
     agents_dir.mkdir()
 
     agent_content = """---
+name: test-agent
 description: "An agent that helps with testing"
-capabilities: ["test1", "test2", "test3"]
 ---
 
 # Test Agent
@@ -98,7 +98,7 @@ def plugin_with_missing_description(temp_dir):
     agents_dir.mkdir()
 
     agent_content = """---
-capabilities: ["test1", "test2"]
+name: test-agent
 ---
 
 # Test Agent
@@ -109,8 +109,8 @@ capabilities: ["test1", "test2"]
 
 
 @pytest.fixture
-def plugin_with_missing_capabilities(temp_dir):
-    """Create a plugin with agent missing capabilities"""
+def plugin_with_missing_name(temp_dir):
+    """Create a plugin with agent missing name"""
     plugin_dir = temp_dir / "test-plugin"
     plugin_dir.mkdir()
 
@@ -127,7 +127,7 @@ description: "Test agent"
 
 # Test Agent
 """
-    (agents_dir / "no-capabilities.md").write_text(agent_content)
+    (agents_dir / "no-name.md").write_text(agent_content)
 
     return plugin_dir
 
@@ -184,13 +184,13 @@ def test_missing_description(plugin_with_missing_description):
     assert "description" in violations[0].message.lower()
 
 
-def test_missing_capabilities(plugin_with_missing_capabilities):
-    """Test that missing capabilities is detected"""
-    context = RepositoryContext(plugin_with_missing_capabilities)
+def test_missing_name(plugin_with_missing_name):
+    """Test that missing name is detected"""
+    context = RepositoryContext(plugin_with_missing_name)
     rule = AgentFrontmatterRule()
     violations = rule.check(context)
     assert len(violations) == 1
-    assert "capabilities" in violations[0].message.lower()
+    assert "name" in violations[0].message.lower()
 
 
 def test_no_agents_directory(plugin_without_agents):
