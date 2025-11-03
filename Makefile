@@ -1,11 +1,10 @@
-.PHONY: help format format-check lint test clean install
+.PHONY: help format test clean
 
 help:
 	@echo "Available targets:"
 	@echo "  format        - Fix code formatting with black"
 	@echo "  test          - Run pytest tests"
 	@echo "  clean         - Remove Python cache files"
-	@echo "  install       - Install package in development mode"
 
 format:
 	black src/ rules/ tests/
@@ -21,6 +20,3 @@ clean:
 	rm -rf .coverage
 	rm -rf coverage.xml
 	rm -rf htmlcov
-
-install:
-	pip install -e .
