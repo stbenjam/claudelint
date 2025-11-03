@@ -7,7 +7,7 @@ help:
 	@echo "  clean         - Remove Python cache files"
 
 format:
-	black src/ rules/ tests/
+	black src/ tests/
 
 test:
 	pytest tests/ -v --cov=src --cov=rules --cov-report=xml --cov-report=term
