@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claudelint"
-version = "0.3.1"
+version = "0.3.2"
 description = "A configurable, rule-based linter for Claude Code plugins"
 readme = "README.md"
 authors = [
