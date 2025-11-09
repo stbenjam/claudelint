@@ -13,6 +13,9 @@ from claudelint.context import RepositoryContext
 class McpValidJsonRule(Rule):
     """Check that MCP configuration is valid JSON with proper structure"""
 
+    VALID_MCP_TYPES = ("stdio", "http", "sse")
+    REQUIRED_FIELDS_BY_TYPE = {"stdio": "command", "http": "url", "sse": "url"}
+
     @property
     def rule_id(self) -> str:
         return "mcp-valid-json"
@@ -117,14 +120,27 @@ class McpValidJsonRule(Rule):
                 )
                 continue
 
-            # Check for required 'command' field
-            if "command" not in server_config:
+            # Get server type (defaults to stdio)
+            server_type = server_config.get("type", "stdio")
+
+            # Validate type field
+            if server_type not in self.VALID_MCP_TYPES:
                 violations.append(
                     self.violation(
-                        f"MCP server '{server_name}' must have a 'command' field",
+                        f"MCP server '{server_name}' has invalid type '{server_type}'. Must be one of: {', '.join(self.VALID_MCP_TYPES)}",
                         file_path=file_path,
                     )
                 )
+            else:
+                # Check for required fields for the valid type
+                required_field = self.REQUIRED_FIELDS_BY_TYPE[server_type]
+                if required_field not in server_config:
+                    violations.append(
+                        self.violation(
+                            f"MCP server '{server_name}' with type '{server_type}' must have a '{required_field}' field",
+                            file_path=file_path,
+                        )
+                    )
 
             # Validate optional fields
             if "args" in server_config and not isinstance(server_config["args"], list):
@@ -147,6 +163,14 @@ class McpValidJsonRule(Rule):
                 violations.append(
                     self.violation(
                         f"MCP server '{server_name}' 'cwd' must be a string",
+                        file_path=file_path,
+                    )
+                )
+
+            if "url" in server_config and not isinstance(server_config["url"], str):
+                violations.append(
+                    self.violation(
+                        f"MCP server '{server_name}' 'url' must be a string",
                         file_path=file_path,
                     )
                 )

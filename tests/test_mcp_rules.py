@@ -10,6 +10,17 @@ from claudelint.rules.builtin.mcp import McpValidJsonRule, McpProhibitedRule
 from claudelint.context import RepositoryContext
 
 
+def _create_plugin_with_mcp(temp_dir, mcp_config):
+    """Helper to create a plugin with a given MCP config."""
+    plugin_dir = temp_dir / "test-plugin"
+    plugin_dir.mkdir()
+    claude_dir = plugin_dir / ".claude-plugin"
+    claude_dir.mkdir()
+    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
+    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
+    return plugin_dir
+
+
 @pytest.fixture
 def plugin_with_valid_mcp_json(temp_dir):
     """Create a plugin with valid .mcp.json"""
@@ -80,7 +91,7 @@ def plugin_with_invalid_mcp_json(temp_dir):
     claude_dir.mkdir()
     (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
 
-    # Invalid JSON
+    # Invalid JSON - can't use helper since this needs invalid JSON
     (plugin_dir / ".mcp.json").write_text('{"mcpServers": invalid}')
 
     return plugin_dir
@@ -89,29 +100,13 @@ def plugin_with_invalid_mcp_json(temp_dir):
 @pytest.fixture
 def plugin_with_missing_mcp_servers_key(temp_dir):
     """Create a plugin with .mcp.json missing mcpServers key"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {"other_key": "value"}
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
-
-    return plugin_dir
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
 
 
 @pytest.fixture
 def plugin_with_missing_command_field(temp_dir):
     """Create a plugin with MCP server missing command field"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {
         "mcpServers": {
             "test-server": {
@@ -120,48 +115,25 @@ def plugin_with_missing_command_field(temp_dir):
             }
         }
     }
-
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
-
-    return plugin_dir
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
 
 
 @pytest.fixture
 def plugin_with_invalid_args_type(temp_dir):
     """Create a plugin with MCP server having invalid args type"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {
         "mcpServers": {"test-server": {"command": "node", "args": "invalid-should-be-array"}}
     }
-
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
-
-    return plugin_dir
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
 
 
 @pytest.fixture
 def plugin_with_invalid_env_type(temp_dir):
     """Create a plugin with MCP server having invalid env type"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {
         "mcpServers": {"test-server": {"command": "node", "env": ["invalid-should-be-object"]}}
     }
-
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
-
-    return plugin_dir
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
 
 
 @pytest.fixture
@@ -188,6 +160,105 @@ def plugin_without_mcp(temp_dir):
     commands_dir.mkdir()
 
     return plugin_dir
+
+
+@pytest.fixture
+def plugin_with_http_mcp(temp_dir):
+    """Create a plugin with valid HTTP MCP configuration"""
+    mcp_config = {
+        "mcpServers": {
+            "http-server": {
+                "type": "http",
+                "url": "https://api.example.com/mcp"
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_sse_mcp(temp_dir):
+    """Create a plugin with valid SSE MCP configuration"""
+    mcp_config = {
+        "mcpServers": {
+            "sse-server": {
+                "type": "sse",
+                "url": "https://events.example.com/mcp"
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_explicit_stdio_mcp(temp_dir):
+    """Create a plugin with explicit stdio type MCP configuration"""
+    mcp_config = {
+        "mcpServers": {
+            "stdio-server": {
+                "type": "stdio",
+                "command": "node",
+                "args": ["server.js"]
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_http_mcp_missing_url(temp_dir):
+    """Create a plugin with HTTP MCP missing url field"""
+    mcp_config = {
+        "mcpServers": {
+            "http-server": {
+                "type": "http"
+                # Missing "url" field
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_sse_mcp_missing_url(temp_dir):
+    """Create a plugin with SSE MCP missing url field"""
+    mcp_config = {
+        "mcpServers": {
+            "sse-server": {
+                "type": "sse"
+                # Missing "url" field
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_invalid_type(temp_dir):
+    """Create a plugin with invalid MCP type"""
+    mcp_config = {
+        "mcpServers": {
+            "invalid-server": {
+                "type": "websocket",  # Invalid type
+                "url": "wss://example.com"
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
+
+
+@pytest.fixture
+def plugin_with_invalid_url_type(temp_dir):
+    """Create a plugin with HTTP MCP having invalid url type"""
+    mcp_config = {
+        "mcpServers": {
+            "http-server": {
+                "type": "http",
+                "url": ["invalid-should-be-string"]
+            }
+        }
+    }
+    return _create_plugin_with_mcp(temp_dir, mcp_config)
 
 
 # Tests for McpValidJsonRule
@@ -270,6 +341,69 @@ def test_mcp_valid_json_rule_metadata():
     assert rule.default_severity().value == "error"
 
 
+def test_http_mcp_valid(plugin_with_http_mcp):
+    """Test that valid HTTP MCP passes validation"""
+    context = RepositoryContext(plugin_with_http_mcp)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_sse_mcp_valid(plugin_with_sse_mcp):
+    """Test that valid SSE MCP passes validation"""
+    context = RepositoryContext(plugin_with_sse_mcp)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_explicit_stdio_mcp_valid(plugin_with_explicit_stdio_mcp):
+    """Test that explicit stdio type MCP passes validation"""
+    context = RepositoryContext(plugin_with_explicit_stdio_mcp)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_http_mcp_missing_url(plugin_with_http_mcp_missing_url):
+    """Test that HTTP MCP missing url field is detected"""
+    context = RepositoryContext(plugin_with_http_mcp_missing_url)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "'url' field" in violations[0].message
+    assert "http" in violations[0].message
+
+
+def test_sse_mcp_missing_url(plugin_with_sse_mcp_missing_url):
+    """Test that SSE MCP missing url field is detected"""
+    context = RepositoryContext(plugin_with_sse_mcp_missing_url)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "'url' field" in violations[0].message
+    assert "sse" in violations[0].message
+
+
+def test_invalid_type(plugin_with_invalid_type):
+    """Test that invalid type value is detected"""
+    context = RepositoryContext(plugin_with_invalid_type)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "invalid type" in violations[0].message
+    assert "websocket" in violations[0].message
+
+
+def test_invalid_url_type(plugin_with_invalid_url_type):
+    """Test that invalid url type is detected"""
+    context = RepositoryContext(plugin_with_invalid_url_type)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "'url' must be a string" in violations[0].message
+
+
 # Tests for McpProhibitedRule
 
 
@@ -309,13 +443,14 @@ def test_mcp_prohibited_rule_metadata():
 
 def test_both_mcp_json_and_plugin_json(temp_dir):
     """Test plugin with both .mcp.json and mcpServers in plugin.json"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
+    # Create .mcp.json
+    mcp_config = {
+        "mcpServers": {"standalone-server": {"command": "python", "args": ["-m", "server"]}}
+    }
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
 
+    # Override plugin.json to add mcpServers
     claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-
-    # Create plugin.json with mcpServers
     plugin_data = {
         "name": "test-plugin",
         "description": "Test",
@@ -324,12 +459,6 @@ def test_both_mcp_json_and_plugin_json(temp_dir):
         "mcpServers": {"inline-server": {"command": "node", "args": ["server.js"]}},
     }
     (claude_dir / "plugin.json").write_text(json.dumps(plugin_data))
-
-    # Also create .mcp.json
-    mcp_config = {
-        "mcpServers": {"standalone-server": {"command": "python", "args": ["-m", "server"]}}
-    }
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
 
     context = RepositoryContext(plugin_dir)
 
@@ -346,18 +475,10 @@ def test_both_mcp_json_and_plugin_json(temp_dir):
 
 def test_invalid_cwd_type(temp_dir):
     """Test that invalid cwd type is detected"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {
         "mcpServers": {"test-server": {"command": "node", "cwd": ["invalid-should-be-string"]}}
     }
-
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
 
     context = RepositoryContext(plugin_dir)
     rule = McpValidJsonRule()
@@ -368,16 +489,8 @@ def test_invalid_cwd_type(temp_dir):
 
 def test_mcp_servers_not_object(temp_dir):
     """Test that mcpServers must be an object"""
-    plugin_dir = temp_dir / "test-plugin"
-    plugin_dir.mkdir()
-
-    claude_dir = plugin_dir / ".claude-plugin"
-    claude_dir.mkdir()
-    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
-
     mcp_config = {"mcpServers": ["invalid-should-be-object"]}
-
-    (plugin_dir / ".mcp.json").write_text(json.dumps(mcp_config))
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
 
     context = RepositoryContext(plugin_dir)
     rule = McpValidJsonRule()
