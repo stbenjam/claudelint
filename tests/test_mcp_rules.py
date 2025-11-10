@@ -166,12 +166,7 @@ def plugin_without_mcp(temp_dir):
 def plugin_with_http_mcp(temp_dir):
     """Create a plugin with valid HTTP MCP configuration"""
     mcp_config = {
-        "mcpServers": {
-            "http-server": {
-                "type": "http",
-                "url": "https://api.example.com/mcp"
-            }
-        }
+        "mcpServers": {"http-server": {"type": "http", "url": "https://api.example.com/mcp"}}
     }
     return _create_plugin_with_mcp(temp_dir, mcp_config)
 
@@ -180,12 +175,7 @@ def plugin_with_http_mcp(temp_dir):
 def plugin_with_sse_mcp(temp_dir):
     """Create a plugin with valid SSE MCP configuration"""
     mcp_config = {
-        "mcpServers": {
-            "sse-server": {
-                "type": "sse",
-                "url": "https://events.example.com/mcp"
-            }
-        }
+        "mcpServers": {"sse-server": {"type": "sse", "url": "https://events.example.com/mcp"}}
     }
     return _create_plugin_with_mcp(temp_dir, mcp_config)
 
@@ -194,13 +184,7 @@ def plugin_with_sse_mcp(temp_dir):
 def plugin_with_explicit_stdio_mcp(temp_dir):
     """Create a plugin with explicit stdio type MCP configuration"""
     mcp_config = {
-        "mcpServers": {
-            "stdio-server": {
-                "type": "stdio",
-                "command": "node",
-                "args": ["server.js"]
-            }
-        }
+        "mcpServers": {"stdio-server": {"type": "stdio", "command": "node", "args": ["server.js"]}}
     }
     return _create_plugin_with_mcp(temp_dir, mcp_config)
 
@@ -238,10 +222,7 @@ def plugin_with_invalid_type(temp_dir):
     """Create a plugin with invalid MCP type"""
     mcp_config = {
         "mcpServers": {
-            "invalid-server": {
-                "type": "websocket",  # Invalid type
-                "url": "wss://example.com"
-            }
+            "invalid-server": {"type": "websocket", "url": "wss://example.com"}  # Invalid type
         }
     }
     return _create_plugin_with_mcp(temp_dir, mcp_config)
@@ -251,12 +232,7 @@ def plugin_with_invalid_type(temp_dir):
 def plugin_with_invalid_url_type(temp_dir):
     """Create a plugin with HTTP MCP having invalid url type"""
     mcp_config = {
-        "mcpServers": {
-            "http-server": {
-                "type": "http",
-                "url": ["invalid-should-be-string"]
-            }
-        }
+        "mcpServers": {"http-server": {"type": "http", "url": ["invalid-should-be-string"]}}
     }
     return _create_plugin_with_mcp(temp_dir, mcp_config)
 
