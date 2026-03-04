@@ -40,7 +40,6 @@ from .mcp import (
     McpProhibitedRule,
 )
 
-
 # All builtin rules
 BUILTIN_RULES = [
     # Plugin structure

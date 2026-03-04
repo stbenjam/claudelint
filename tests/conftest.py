@@ -122,8 +122,7 @@ def marketplace_repo(temp_dir):
         commands_dir.mkdir()
 
         with open(commands_dir / "test.md", "w") as f:
-            f.write(
-                f"""---
+            f.write(f"""---
 description: Test command
 ---
 
@@ -140,8 +139,7 @@ Test command
 
 ## Implementation
 Do something
-"""
-            )
+""")
 
     return temp_dir
 
@@ -174,8 +172,7 @@ def flat_structure_marketplace(temp_dir):
     commands_dir.mkdir()
 
     with open(commands_dir / "test.md", "w") as f:
-        f.write(
-            """---
+        f.write("""---
 description: Test command
 ---
 
@@ -192,8 +189,7 @@ Test command for flat structure
 
 ## Implementation
 Do something
-"""
-        )
+""")
 
     # Create skills at root level
     skills_dir = temp_dir / "skills"
@@ -202,16 +198,14 @@ Do something
     skill_dir.mkdir()
 
     with open(skill_dir / "SKILL.md", "w") as f:
-        f.write(
-            """---
+        f.write("""---
 description: Test skill
 ---
 
 # Test Skill
 
 This is a test skill for flat structure.
-"""
-        )
+""")
 
     return temp_dir
 
@@ -261,8 +255,7 @@ def custom_path_marketplace(temp_dir):
     commands_dir.mkdir()
 
     with open(commands_dir / "test.md", "w") as f:
-        f.write(
-            """---
+        f.write("""---
 description: Test command
 ---
 
@@ -279,8 +272,7 @@ Test command
 
 ## Implementation
 Do something
-"""
-        )
+""")
 
     return temp_dir
 
@@ -321,8 +313,7 @@ def strict_false_marketplace(temp_dir):
     commands_dir.mkdir()
 
     with open(commands_dir / "test.md", "w") as f:
-        f.write(
-            """---
+        f.write("""---
 description: Test command
 ---
 
@@ -339,8 +330,7 @@ Test command without plugin.json
 
 ## Implementation
 Do something
-"""
-        )
+""")
 
     # Create skills
     skills_dir = plugin_dir / "skills"
@@ -349,16 +339,14 @@ Do something
     skill_dir.mkdir()
 
     with open(skill_dir / "SKILL.md", "w") as f:
-        f.write(
-            """---
+        f.write("""---
 description: Test skill
 ---
 
 # Test Skill
 
 This is a test skill without plugin.json.
-"""
-        )
+""")
 
     return temp_dir
 
