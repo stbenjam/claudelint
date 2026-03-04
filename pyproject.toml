@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Software Development :: Testing",
 ]
 keywords = ["claude", "claude-code", "linter", "plugin", "validation"]
-requires-python = ">=3.8"
+requires-python = ">=3.8.1"
 dependencies = [
     "PyYAML>=6.0",
 ]

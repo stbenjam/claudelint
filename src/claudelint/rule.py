@@ -100,7 +100,13 @@ class Rule(ABC):
         """
         pass
 
-    def violation(self, message: str, file_path: Path = None, line: int = None) -> RuleViolation:
+    def violation(
+        self,
+        message: str,
+        file_path: Path = None,
+        line: int = None,
+        severity: Severity = None,
+    ) -> RuleViolation:
         """
         Create a violation for this rule
 
@@ -108,13 +114,14 @@ class Rule(ABC):
             message: Violation message
             file_path: Optional file path where violation occurred
             line: Optional line number
+            severity: Override severity (defaults to rule's configured severity)
 
         Returns:
             RuleViolation instance
         """
         return RuleViolation(
             rule_id=self.rule_id,
-            severity=self.severity,
+            severity=severity if severity is not None else self.severity,
             message=message,
             file_path=file_path,
             line=line,

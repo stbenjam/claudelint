@@ -14,8 +14,7 @@ def test_load_valid_custom_rule(valid_plugin, temp_dir):
     """Test that a valid custom rule loads successfully"""
     # Create a valid custom rule file
     custom_rule_file = temp_dir / "custom_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -33,8 +32,7 @@ class TestCustomRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     # Create config with custom rule
     config = LinterConfig(custom_rules=[str(custom_rule_file)])
@@ -62,8 +60,7 @@ def test_load_custom_rule_import_error(valid_plugin, temp_dir):
     """Test that linter fails when custom rule has import errors"""
     # Create a custom rule file with import error
     custom_rule_file = temp_dir / "bad_import_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from nonexistent_module import something  # This will cause ImportError
 from typing import List
@@ -82,8 +79,7 @@ class BadImportRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     config = LinterConfig(custom_rules=[str(custom_rule_file)])
     context = RepositoryContext(valid_plugin)
@@ -97,8 +93,7 @@ def test_load_custom_rule_syntax_error(valid_plugin, temp_dir):
     """Test that linter fails when custom rule has syntax errors"""
     # Create a custom rule file with syntax error
     custom_rule_file = temp_dir / "syntax_error_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -116,8 +111,7 @@ class SyntaxErrorRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     config = LinterConfig(custom_rules=[str(custom_rule_file)])
     context = RepositoryContext(valid_plugin)
@@ -131,8 +125,7 @@ def test_load_custom_rule_missing_imports(valid_plugin, temp_dir):
     """Test that linter fails when custom rule can't import from claudelint"""
     # Create a custom rule file that tries to import but claudelint exports are missing
     custom_rule_file = temp_dir / "missing_export_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, NonExistentClass  # NonExistentClass doesn't exist
 from typing import List
 
@@ -151,8 +144,7 @@ class MissingExportRule(Rule):
 
     def check(self, context):
         return []
-"""
-    )
+""")
 
     config = LinterConfig(custom_rules=[str(custom_rule_file)])
     context = RepositoryContext(valid_plugin)
@@ -166,8 +158,7 @@ def test_load_custom_rule_relative_path(valid_plugin, temp_dir):
     """Test that custom rules with relative paths work correctly"""
     # Create a custom rule file in the plugin directory
     custom_rule_file = valid_plugin / "my_custom_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -185,8 +176,7 @@ class RelativePathRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     # Use relative path (relative to repository root)
     config = LinterConfig(custom_rules=["./my_custom_rule.py"])
@@ -204,8 +194,7 @@ def test_load_multiple_custom_rules(valid_plugin, temp_dir):
     """Test loading multiple custom rules at once"""
     # Create two custom rule files
     custom_rule_1 = temp_dir / "custom_rule_1.py"
-    custom_rule_1.write_text(
-        """
+    custom_rule_1.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -223,12 +212,10 @@ class CustomRule1(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     custom_rule_2 = temp_dir / "custom_rule_2.py"
-    custom_rule_2.write_text(
-        """
+    custom_rule_2.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -246,8 +233,7 @@ class CustomRule2(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return []
-"""
-    )
+""")
 
     # Create config with both custom rules
     config = LinterConfig(custom_rules=[str(custom_rule_1), str(custom_rule_2)])
@@ -266,8 +252,7 @@ def test_custom_rule_can_find_violations(valid_plugin, temp_dir):
     """Test that custom rules can actually find and report violations"""
     # Create a custom rule that always finds a violation
     custom_rule_file = temp_dir / "violation_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -285,8 +270,7 @@ class ViolationRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return [self.violation("This is a test violation")]
-"""
-    )
+""")
 
     config = LinterConfig(custom_rules=[str(custom_rule_file)])
     context = RepositoryContext(valid_plugin)
@@ -304,8 +288,7 @@ def test_custom_rule_respects_disabled_config(valid_plugin, temp_dir):
     """Test that custom rules respect the enabled/disabled config"""
     # Create a custom rule
     custom_rule_file = temp_dir / "disabled_rule.py"
-    custom_rule_file.write_text(
-        """
+    custom_rule_file.write_text("""
 from claudelint import Rule, RuleViolation, Severity, RepositoryContext
 from typing import List
 
@@ -323,8 +306,7 @@ class DisabledRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         return [self.violation("Should not see this")]
-"""
-    )
+""")
 
     # Create config with custom rule disabled
     config = LinterConfig(
