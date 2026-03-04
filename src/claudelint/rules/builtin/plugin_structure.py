@@ -81,11 +81,23 @@ class PluginJsonValidRule(Rule):
                 continue
 
             # Check required fields
-            required_fields = ["name", "description", "version", "author"]
+            required_fields = ["name"]
             for field in required_fields:
                 if field not in data:
                     violations.append(
                         self.violation(f"Missing required field '{field}'", file_path=plugin_json)
+                    )
+
+            # Check recommended fields (warning)
+            recommended_fields = ["description", "version", "author"]
+            for field in recommended_fields:
+                if field not in data:
+                    violations.append(
+                        self.violation(
+                            f"Missing recommended field '{field}'",
+                            file_path=plugin_json,
+                            severity=Severity.WARNING,
+                        )
                     )
 
             # Validate version format (semver)

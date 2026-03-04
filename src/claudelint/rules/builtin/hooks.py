@@ -12,14 +12,70 @@ from claudelint.context import RepositoryContext
 _VALID_HOOK_EVENTS = {
     "PreToolUse",
     "PostToolUse",
+    "PostToolUseFailure",
+    "PermissionRequest",
     "UserPromptSubmit",
     "Notification",
     "Stop",
+    "SubagentStart",
     "SubagentStop",
     "SessionStart",
     "SessionEnd",
     "PreCompact",
+    "TeammateIdle",
+    "TaskCompleted",
+    "ConfigChange",
+    "WorktreeCreate",
+    "WorktreeRemove",
 }
+
+# Valid hook handler types
+_VALID_HOOK_TYPES = {"command", "http", "prompt", "agent"}
+
+# Required fields per handler type
+_TYPE_REQUIRED_FIELDS = {
+    "command": {"command": str},
+    "http": {"url": str},
+    "prompt": {"prompt": str},
+    "agent": {"prompt": str},
+}
+
+# Fields restricted to specific handler types (field -> set of valid types)
+_TYPE_SPECIFIC_FIELDS = {
+    "command": {"command"},
+    "async": {"command"},
+    "url": {"http"},
+    "headers": {"http"},
+    "allowedEnvVars": {"http"},
+    "prompt": {"prompt", "agent"},
+    "model": {"prompt", "agent"},
+}
+
+# Common optional field type validation
+_OPTIONAL_FIELD_TYPES = {
+    "timeout": (int, float),
+    "async": bool,
+    "once": bool,
+    "statusMessage": str,
+    "headers": dict,
+    "allowedEnvVars": list,
+}
+
+
+def _check_field_type(value, expected_type):
+    """Check if value matches expected type, treating bool as distinct from int."""
+    if isinstance(expected_type, tuple):
+        return isinstance(value, expected_type) and not isinstance(value, bool)
+    if expected_type is bool:
+        return isinstance(value, bool)
+    return isinstance(value, expected_type) and not isinstance(value, bool)
+
+
+def _format_type_name(expected_type):
+    """Format expected type for error messages."""
+    if isinstance(expected_type, tuple):
+        return "/".join(t.__name__ for t in expected_type)
+    return expected_type.__name__
 
 
 class HooksJsonValidRule(Rule):
@@ -146,5 +202,68 @@ class HooksJsonValidRule(Rule):
                                     file_path=hooks_json,
                                 )
                             )
+                            continue
+
+                        hook_type = hook["type"]
+                        hook_path = f"{event_type}[{idx}].hooks[{hook_idx}]"
+
+                        # Validate type value
+                        if hook_type not in _VALID_HOOK_TYPES:
+                            violations.append(
+                                self.violation(
+                                    f"Event '{hook_path}' has invalid type '{hook_type}'. "
+                                    f"Valid types: {', '.join(sorted(_VALID_HOOK_TYPES))}",
+                                    file_path=hooks_json,
+                                )
+                            )
+                            continue
+
+                        # Validate type-specific required fields
+                        for field, expected_type in _TYPE_REQUIRED_FIELDS[hook_type].items():
+                            if field not in hook:
+                                violations.append(
+                                    self.violation(
+                                        f"Event '{hook_path}' of type '{hook_type}' "
+                                        f"requires a '{field}' field",
+                                        file_path=hooks_json,
+                                    )
+                                )
+                            elif not isinstance(hook[field], expected_type):
+                                violations.append(
+                                    self.violation(
+                                        f"Event '{hook_path}' field '{field}' "
+                                        f"must be a {expected_type.__name__}",
+                                        file_path=hooks_json,
+                                    )
+                                )
+
+                        # Validate type-specific field restrictions (WARNING)
+                        for field in hook:
+                            if field in _TYPE_SPECIFIC_FIELDS:
+                                valid_types = _TYPE_SPECIFIC_FIELDS[field]
+                                if hook_type not in valid_types:
+                                    violations.append(
+                                        self.violation(
+                                            f"Event '{hook_path}' field '{field}' "
+                                            f"is only valid on types: "
+                                            f"{', '.join(sorted(valid_types))}",
+                                            file_path=hooks_json,
+                                            severity=Severity.WARNING,
+                                        )
+                                    )
+
+                        # Validate common optional field types
+                        for field, expected_type in _OPTIONAL_FIELD_TYPES.items():
+                            if field not in hook:
+                                continue
+                            if not _check_field_type(hook[field], expected_type):
+                                type_name = _format_type_name(expected_type)
+                                violations.append(
+                                    self.violation(
+                                        f"Event '{hook_path}' field '{field}' "
+                                        f"must be a {type_name}",
+                                        file_path=hooks_json,
+                                    )
+                                )
 
         return violations

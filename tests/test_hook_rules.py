@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from claudelint.rules.builtin.hooks import HooksJsonValidRule
+from claudelint.rule import Severity
 from claudelint.context import RepositoryContext
 
 
@@ -36,7 +37,7 @@ def plugin_with_valid_hooks(temp_dir):
                 }
             ],
             "PreToolUse": [
-                {"matcher": ".*", "hooks": [{"type": "validation", "command": "echo 'validating'"}]}
+                {"matcher": ".*", "hooks": [{"type": "command", "command": "echo 'validating'"}]}
             ],
         }
     }
@@ -233,13 +234,21 @@ def test_all_valid_event_types(temp_dir):
     valid_events = [
         "PreToolUse",
         "PostToolUse",
+        "PostToolUseFailure",
+        "PermissionRequest",
         "UserPromptSubmit",
         "Notification",
         "Stop",
+        "SubagentStart",
         "SubagentStop",
         "SessionStart",
         "SessionEnd",
         "PreCompact",
+        "TeammateIdle",
+        "TaskCompleted",
+        "ConfigChange",
+        "WorktreeCreate",
+        "WorktreeRemove",
     ]
 
     hooks_config = {"hooks": {}}
@@ -254,3 +263,374 @@ def test_all_valid_event_types(temp_dir):
     rule = HooksJsonValidRule()
     violations = rule.check(context)
     assert len(violations) == 0
+
+
+def _make_hooks_plugin(temp_dir, hooks_config):
+    """Helper to create a plugin with a given hooks config."""
+    plugin_dir = temp_dir / "test-plugin"
+    plugin_dir.mkdir()
+    claude_dir = plugin_dir / ".claude-plugin"
+    claude_dir.mkdir()
+    (claude_dir / "plugin.json").write_text('{"name": "test-plugin"}')
+    hooks_dir = plugin_dir / "hooks"
+    hooks_dir.mkdir()
+    (hooks_dir / "hooks.json").write_text(json.dumps(hooks_config))
+    return plugin_dir
+
+
+def test_valid_hook_type_command(temp_dir):
+    """Test that valid command hook type passes"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "command", "command": "echo test"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_valid_hook_type_http(temp_dir):
+    """Test that valid http hook type passes"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "http", "url": "https://example.com/hook"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_valid_hook_type_prompt(temp_dir):
+    """Test that valid prompt hook type passes"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "prompt", "prompt": "check the output"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_valid_hook_type_agent(temp_dir):
+    """Test that valid agent hook type passes"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "agent", "prompt": "review changes"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_invalid_hook_type_value(temp_dir):
+    """Test that invalid hook type value is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "invalid_type", "command": "echo test"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "invalid type" in violations[0].message
+
+
+def test_command_type_missing_command_field(temp_dir):
+    """Test that command type without command field is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "command"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "requires a 'command' field" in violations[0].message
+
+
+def test_http_type_missing_url_field(temp_dir):
+    """Test that http type without url field is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "http"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "requires a 'url' field" in violations[0].message
+
+
+def test_prompt_type_missing_prompt_field(temp_dir):
+    """Test that prompt type without prompt field is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "prompt"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "requires a 'prompt' field" in violations[0].message
+
+
+def test_type_specific_field_restriction_warning(temp_dir):
+    """Test that using async on http hook produces a warning"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [
+                            {
+                                "type": "http",
+                                "url": "https://example.com",
+                                "async": True,
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert violations[0].severity == Severity.WARNING
+    assert "only valid on types" in violations[0].message
+
+
+def test_field_type_validation_timeout_string(temp_dir):
+    """Test that timeout as string is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "echo test",
+                                "timeout": "5000",
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "timeout" in violations[0].message
+    assert "int/float" in violations[0].message
+
+
+def test_field_type_validation_timeout_number(temp_dir):
+    """Test that timeout as number passes"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "echo test",
+                                "timeout": 5000,
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_headers_on_command_type_warning(temp_dir):
+    """Test that headers on command type produces a warning"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "echo test",
+                                "headers": {"Authorization": "Bearer token"},
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert violations[0].severity == Severity.WARNING
+    assert "headers" in violations[0].message
+
+
+def test_agent_type_missing_prompt_field(temp_dir):
+    """Test that agent type without prompt field is detected"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "agent"}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "requires a 'prompt' field" in violations[0].message
+
+
+def test_required_field_wrong_type(temp_dir):
+    """Test that required field with wrong type is detected (e.g. command as int)"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [{"type": "command", "command": 123}],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "must be a str" in violations[0].message
+
+
+def test_timeout_as_boolean_rejected(temp_dir):
+    """Test that timeout as boolean is rejected (bool is subclass of int)"""
+    plugin_dir = _make_hooks_plugin(
+        temp_dir,
+        {
+            "hooks": {
+                "PostToolUse": [
+                    {
+                        "matcher": ".*",
+                        "hooks": [
+                            {
+                                "type": "command",
+                                "command": "echo test",
+                                "timeout": True,
+                            }
+                        ],
+                    }
+                ]
+            }
+        },
+    )
+    context = RepositoryContext(plugin_dir)
+    rule = HooksJsonValidRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "timeout" in violations[0].message
