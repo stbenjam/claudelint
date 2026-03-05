@@ -175,6 +175,24 @@ class McpValidJsonRule(Rule):
                     )
                 )
 
+            if "headers" in server_config and not isinstance(server_config["headers"], dict):
+                violations.append(
+                    self.violation(
+                        f"MCP server '{server_name}' 'headers' must be an object",
+                        file_path=file_path,
+                    )
+                )
+
+            if "startupTimeout" in server_config:
+                val = server_config["startupTimeout"]
+                if isinstance(val, bool) or not isinstance(val, (int, float)):
+                    violations.append(
+                        self.violation(
+                            f"MCP server '{server_name}' 'startupTimeout' must be a number",
+                            file_path=file_path,
+                        )
+                    )
+
         return violations
 
 
