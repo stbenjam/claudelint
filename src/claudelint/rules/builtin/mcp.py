@@ -185,7 +185,9 @@ class McpValidJsonRule(Rule):
 
             if "startupTimeout" in server_config:
                 val = server_config["startupTimeout"]
-                if isinstance(val, bool) or not isinstance(val, (int, float)):
+                # `bool` is a subclass of `int`, so we must explicitly exclude it.
+                is_valid_number = isinstance(val, (int, float)) and not isinstance(val, bool)
+                if not is_valid_number:
                     violations.append(
                         self.violation(
                             f"MCP server '{server_name}' 'startupTimeout' must be a number",
