@@ -27,6 +27,7 @@ _VALID_HOOK_EVENTS = {
     "ConfigChange",
     "WorktreeCreate",
     "WorktreeRemove",
+    "InstructionsLoaded",
 }
 
 # Valid hook handler types
@@ -64,8 +65,6 @@ _OPTIONAL_FIELD_TYPES = {
 
 def _check_field_type(value, expected_type):
     """Check if value matches expected type, treating bool as distinct from int."""
-    if isinstance(expected_type, tuple):
-        return isinstance(value, expected_type) and not isinstance(value, bool)
     if expected_type is bool:
         return isinstance(value, bool)
     return isinstance(value, expected_type) and not isinstance(value, bool)
@@ -228,11 +227,12 @@ class HooksJsonValidRule(Rule):
                                         file_path=hooks_json,
                                     )
                                 )
-                            elif not isinstance(hook[field], expected_type):
+                            elif not _check_field_type(hook[field], expected_type):
+                                type_name = _format_type_name(expected_type)
                                 violations.append(
                                     self.violation(
                                         f"Event '{hook_path}' field '{field}' "
-                                        f"must be a {expected_type.__name__}",
+                                        f"must be a {type_name}",
                                         file_path=hooks_json,
                                     )
                                 )

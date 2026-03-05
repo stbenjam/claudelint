@@ -249,6 +249,7 @@ def test_all_valid_event_types(temp_dir):
         "ConfigChange",
         "WorktreeCreate",
         "WorktreeRemove",
+        "InstructionsLoaded",
     ]
 
     hooks_config = {"hooks": {}}

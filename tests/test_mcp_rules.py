@@ -536,3 +536,77 @@ def test_mcp_prohibited_with_empty_allowlist(plugin_with_valid_mcp_json):
     violations = rule.check(context)
     assert len(violations) == 1
     assert ".mcp.json" in violations[0].message
+
+
+def test_valid_headers_on_http_server(temp_dir):
+    """Test that valid headers field on HTTP MCP server passes"""
+    mcp_config = {
+        "mcpServers": {
+            "http-server": {
+                "type": "http",
+                "url": "https://api.example.com/mcp",
+                "headers": {"Authorization": "Bearer token"},
+            }
+        }
+    }
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
+    context = RepositoryContext(plugin_dir)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_invalid_headers_type(temp_dir):
+    """Test that invalid headers type is detected"""
+    mcp_config = {
+        "mcpServers": {
+            "http-server": {
+                "type": "http",
+                "url": "https://api.example.com/mcp",
+                "headers": "invalid-should-be-object",
+            }
+        }
+    }
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
+    context = RepositoryContext(plugin_dir)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "'headers' must be an object" in violations[0].message
+
+
+def test_valid_startup_timeout(temp_dir):
+    """Test that valid startupTimeout field passes"""
+    mcp_config = {
+        "mcpServers": {
+            "test-server": {
+                "command": "node",
+                "args": ["server.js"],
+                "startupTimeout": 30000,
+            }
+        }
+    }
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
+    context = RepositoryContext(plugin_dir)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 0
+
+
+def test_invalid_startup_timeout_type(temp_dir):
+    """Test that invalid startupTimeout type is detected"""
+    mcp_config = {
+        "mcpServers": {
+            "test-server": {
+                "command": "node",
+                "args": ["server.js"],
+                "startupTimeout": "slow",
+            }
+        }
+    }
+    plugin_dir = _create_plugin_with_mcp(temp_dir, mcp_config)
+    context = RepositoryContext(plugin_dir)
+    rule = McpValidJsonRule()
+    violations = rule.check(context)
+    assert len(violations) == 1
+    assert "'startupTimeout' must be a number" in violations[0].message
