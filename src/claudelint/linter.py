@@ -44,8 +44,11 @@ class ClaudeLinter:
         from .rules.builtin import BUILTIN_RULES
 
         for rule_class in BUILTIN_RULES:
-            # Create instance with config
-            rule_instance = rule_class(self.config.get_rule_config(rule_class.rule_id))
+            # Instantiate to discover rule_id (a property, not accessible on the class)
+            rule_instance = rule_class()
+            config = self.config.get_rule_config(rule_instance.rule_id)
+            if config:
+                rule_instance = rule_class(config)
 
             # Check if enabled for this context
             if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
@@ -76,9 +79,11 @@ class ClaudeLinter:
         for name in dir(module):
             obj = getattr(module, name)
             if isinstance(obj, type) and issubclass(obj, Rule) and obj is not Rule:
-
-                # Create instance
-                rule_instance = obj(self.config.get_rule_config(obj.rule_id))
+                # Instantiate to discover rule_id (a property, not accessible on the class)
+                rule_instance = obj()
+                config = self.config.get_rule_config(rule_instance.rule_id)
+                if config:
+                    rule_instance = obj(config)
 
                 # Check if enabled
                 if self.config.is_rule_enabled(rule_instance.rule_id, self.context):
@@ -117,7 +122,9 @@ class ClaudeLinter:
         info = sum(1 for v in violations if v.severity == Severity.INFO)
         return errors, warnings, info
 
-    def format_results(self, violations: List[RuleViolation], verbose: bool = False) -> str:
+    def format_results(
+        self, violations: List[RuleViolation], verbose: bool = False
+    ) -> str:
         """
         Format violations for display
 

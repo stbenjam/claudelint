@@ -54,7 +54,11 @@ class LinterConfig:
             rules={
                 # Plugin structure rules
                 "plugin-json-required": {"enabled": True, "severity": "error"},
-                "plugin-json-valid": {"enabled": True, "severity": "error"},
+                "plugin-json-valid": {
+                    "enabled": True,
+                    "severity": "error",
+                    "recommended-fields": ["description", "version", "author"],
+                },
                 "plugin-naming": {"enabled": True, "severity": "warning"},
                 "commands-dir-required": {
                     "enabled": False,

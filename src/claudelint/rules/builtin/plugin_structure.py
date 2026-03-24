@@ -39,13 +39,17 @@ class PluginJsonRequiredRule(Rule):
                         # When strict: false, plugin.json is optional
                         continue
 
-                violations.append(self.violation("Missing plugin.json", file_path=plugin_json))
+                violations.append(
+                    self.violation("Missing plugin.json", file_path=plugin_json)
+                )
 
         return violations
 
 
 class PluginJsonValidRule(Rule):
     """Check that plugin.json is valid and has required fields"""
+
+    DEFAULT_RECOMMENDED_FIELDS = ["description", "version", "author"]
 
     @property
     def rule_id(self) -> str:
@@ -60,6 +64,9 @@ class PluginJsonValidRule(Rule):
 
     def check(self, context: RepositoryContext) -> List[RuleViolation]:
         violations = []
+        recommended_fields = self.config.get(
+            "recommended-fields", self.DEFAULT_RECOMMENDED_FIELDS
+        )
 
         for plugin_path in context.plugins:
             plugin_json = plugin_path / ".claude-plugin" / "plugin.json"
@@ -72,7 +79,9 @@ class PluginJsonValidRule(Rule):
                 with open(plugin_json, "r") as f:
                     data = json.load(f)
             except json.JSONDecodeError as e:
-                violations.append(self.violation(f"Invalid JSON: {e}", file_path=plugin_json))
+                violations.append(
+                    self.violation(f"Invalid JSON: {e}", file_path=plugin_json)
+                )
                 continue
             except IOError as e:
                 violations.append(
@@ -85,11 +94,12 @@ class PluginJsonValidRule(Rule):
             for field in required_fields:
                 if field not in data:
                     violations.append(
-                        self.violation(f"Missing required field '{field}'", file_path=plugin_json)
+                        self.violation(
+                            f"Missing required field '{field}'", file_path=plugin_json
+                        )
                     )
 
             # Check recommended fields (warning)
-            recommended_fields = ["description", "version", "author"]
             for field in recommended_fields:
                 if field not in data:
                     violations.append(
@@ -117,7 +127,8 @@ class PluginJsonValidRule(Rule):
                 if not isinstance(author, dict) or "name" not in author:
                     violations.append(
                         self.violation(
-                            "Author must be an object with 'name' field", file_path=plugin_json
+                            "Author must be an object with 'name' field",
+                            file_path=plugin_json,
                         )
                     )
 
@@ -147,7 +158,8 @@ class PluginNamingRule(Rule):
             if not self._is_kebab_case(plugin_name):
                 violations.append(
                     self.violation(
-                        f"Plugin name '{plugin_name}' should use kebab-case", file_path=plugin_path
+                        f"Plugin name '{plugin_name}' should use kebab-case",
+                        file_path=plugin_path,
                     )
                 )
 
@@ -213,7 +225,8 @@ class CommandsExistRule(Rule):
             if not command_files:
                 violations.append(
                     self.violation(
-                        "No command files found in commands directory", file_path=commands_dir
+                        "No command files found in commands directory",
+                        file_path=commands_dir,
                     )
                 )
 
@@ -241,7 +254,9 @@ class PluginReadmeRule(Rule):
             readme = plugin_path / "README.md"
             if not readme.exists():
                 violations.append(
-                    self.violation("Missing README.md (recommended)", file_path=plugin_path)
+                    self.violation(
+                        "Missing README.md (recommended)", file_path=plugin_path
+                    )
                 )
 
         return violations
