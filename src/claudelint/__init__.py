@@ -2,7 +2,7 @@
 claudelint - A configurable linter for Claude Code plugins
 """
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 from .rule import Rule, RuleViolation, Severity
 from .context import RepositoryContext

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "claudelint"
-version = "0.3.5"
+version = "0.3.6"
 description = "A configurable, rule-based linter for Claude Code plugins"
 readme = "README.md"
 authors = [
@@ -34,7 +34,7 @@ dependencies = [
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "black>=23.0",
+    "black>=26,<27",
     "flake8>=6.0",
     "mypy>=1.0",
 ]

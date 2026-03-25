@@ -122,9 +122,7 @@ class ClaudeLinter:
         info = sum(1 for v in violations if v.severity == Severity.INFO)
         return errors, warnings, info
 
-    def format_results(
-        self, violations: List[RuleViolation], verbose: bool = False
-    ) -> str:
+    def format_results(self, violations: List[RuleViolation], verbose: bool = False) -> str:
         """
         Format violations for display
 
