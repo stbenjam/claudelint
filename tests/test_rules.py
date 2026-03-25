@@ -148,6 +148,57 @@ def test_plugin_json_name_only_warns_for_recommended(temp_dir):
     assert recommended == {"description", "version", "author"}
 
 
+def test_plugin_json_custom_recommended_fields(temp_dir):
+    """Test that recommended-fields config controls which fields are checked"""
+    import json
+
+    plugin_dir = temp_dir / "minimal-plugin"
+    plugin_dir.mkdir()
+
+    claude_dir = plugin_dir / ".claude-plugin"
+    claude_dir.mkdir()
+
+    with open(claude_dir / "plugin.json", "w") as f:
+        json.dump({"name": "minimal-plugin"}, f)
+
+    (plugin_dir / "commands").mkdir()
+
+    context = RepositoryContext(plugin_dir)
+    rule = PluginJsonValidRule({"recommended-fields": ["description", "version"]})
+    violations = rule.check(context)
+
+    # Should have 2 warnings (description, version) but NOT author
+    assert len(violations) == 2
+    for v in violations:
+        assert v.severity == Severity.WARNING
+        assert "recommended" in v.message
+
+    recommended = {v.message.split("'")[1] for v in violations}
+    assert recommended == {"description", "version"}
+
+
+def test_plugin_json_empty_recommended_fields(temp_dir):
+    """Test that empty recommended-fields disables all recommended field checks"""
+    import json
+
+    plugin_dir = temp_dir / "minimal-plugin"
+    plugin_dir.mkdir()
+
+    claude_dir = plugin_dir / ".claude-plugin"
+    claude_dir.mkdir()
+
+    with open(claude_dir / "plugin.json", "w") as f:
+        json.dump({"name": "minimal-plugin"}, f)
+
+    (plugin_dir / "commands").mkdir()
+
+    context = RepositoryContext(plugin_dir)
+    rule = PluginJsonValidRule({"recommended-fields": []})
+    violations = rule.check(context)
+
+    assert len(violations) == 0
+
+
 def test_plugin_json_missing_name_is_error(temp_dir):
     """Test that plugin.json missing 'name' produces an error"""
     import json

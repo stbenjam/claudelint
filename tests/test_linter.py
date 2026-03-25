@@ -74,3 +74,19 @@ def test_linter_respects_disabled_rules(valid_plugin):
 
     # Should have no rules loaded
     assert len(linter.rules) == 0
+
+
+def test_linter_passes_rule_config(valid_plugin):
+    """Test that per-rule config from .claudelint.yaml reaches rule instances"""
+    context = RepositoryContext(valid_plugin)
+    config = LinterConfig.default()
+
+    # Override recommended-fields for plugin-json-valid
+    config.rules["plugin-json-valid"]["recommended-fields"] = ["description"]
+
+    linter = ClaudeLinter(context, config)
+
+    # Find the plugin-json-valid rule and verify it got the config
+    pjv_rules = [r for r in linter.rules if r.rule_id == "plugin-json-valid"]
+    assert len(pjv_rules) == 1
+    assert pjv_rules[0].config.get("recommended-fields") == ["description"]
