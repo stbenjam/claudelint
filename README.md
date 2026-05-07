@@ -1,3 +1,5 @@
+> **This project has been renamed to [skillsaw](https://github.com/stbenjam/skillsaw).** This repository is no longer maintained. Please use `skillsaw` for all new installations — the `claudelint` PyPI package and Docker image will continue to work as aliases but will not receive updates.
+
 [![PyPI version](https://badge.fury.io/py/claudelint.svg)](https://badge.fury.io/py/claudelint)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/claudelint)](https://pypi.org/project/claudelint/)
 [![Tests](https://github.com/stbenjam/claudelint/workflows/Tests/badge.svg)](https://github.com/stbenjam/claudelint/actions/workflows/test.yml)
